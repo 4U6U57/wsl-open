@@ -81,18 +81,18 @@ while getopts "ha:d:" Opt; do
       File=$OPTARG
       [[ ! -e $File ]] && Error "File does not exist: $File"
       Type=$(xdg-mime query filetype $File)
-      TypeSafe=$(tr '/' '\/' <<< $Type)
+      TypeSafe="${Type//\//\\/}"
       echo "Associating type $Type with $Exe"
-      sed -i "#$TypeSafe#d" $DefaultsFile
-      echo "$Type; open-window '%s'" > $DefaultsFile
+      sed -i "/$TypeSafe/d" $DefaultsFile
+      echo "$Type; open-window '%s'" >> $DefaultsFile
       ;;
     (d)
       File=$OPTARG
       [[ ! -e $File ]] && Error "File does not exist: $File"
       Type=$(xdg-mime query filetype $File)
-      TypeSafe=$(tr '/' '\/' <<< $Type)
+      TypeSafe="${Type//\//\\/}"
       echo "Disassociating type $Type with $Exe"
-      sed -i "#$TypeSafe.*open-window#d" $DefaultsFile
+      sed -i "/$TypeSafe.*open-window/d" $DefaultsFile
       ;;
     (\?)
       Error "Invalid option: -$OPTARG"
@@ -103,18 +103,23 @@ shift $(( OPTIND - 1 ))
 
 # Open file
 File=$1
+echo "@=$@"
+echo "File=$File"
 if [[ ! -z $File ]]; then
   # Check file existence
   [[ ! -e $File ]] && Error "File does not exist: $File"
 
   # Move file to Windows partition, if necessary
-  FilePath=$(readlink -f $File)
+  FilePath="$(readlink -f $File | sed 's/ /-/g')"
+  echo "FilePath(init)=$FilePath"
+  echo "basename(FilePath)=$(basename $FilePath)"
   if [[ $FilePath != $WinHome/* ]]; then
     Warning "File not in Windows partition: $FilePath"
     TempFolder=$WinHome/$Exe
     [[ ! -e $TempFolder ]] && echo "Creating temporary folder: $TempFolder" && mkdir $TempFolder
-    FilePath=$TempFolder/$(basename $File)
-    cp -v $File $FilePath || Error "Could not copy file, check that it's not open on Windows"
+    FilePath="$TempFolder/$(basename $FilePath)"
+    echo "FilePath=$FilePath"
+    cp -v $File "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
   fi
 
   FileWin=$(echo $FilePath | cut -d "/" -f 3-)
