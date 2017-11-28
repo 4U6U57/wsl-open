@@ -6,7 +6,7 @@ A shell script utility for opening files from the [Windows Subsystem for Linux][
 
 ### Installation
 
-Download the shell script and put it somewhere in your PATH. If you don't know how to do that, here are a few lines that should do the trick. (But if you aren't really using the command line, this might not be the utility for you! :dizzy_face:)
+Download the shell script and put it somewhere in your PATH. If you don't know how to do that, here are a few lines that should do the trick. (But if you aren't really used to using the command line, this might not be the utility for you! :dizzy_face:)
 
 ```bash
 mkdir ~/bin
@@ -17,11 +17,11 @@ echo "[[ -e ~/bin ]] && PATH=$PATH:~/bin" » .bashrc
 
 ### Usage
 
-- **Base case:** `open-window FILE` opens `FILE` with the default program associated with that filetype in Windows
-- **More general:** `open-window -a FILE` associates the script with the filetype of that file, meaning that you can run `xdg-open FILE` (the usual way of opening files in Linux) and the file will open with `open-window`
-    - You can revert this by running `open-window -d FILE`. You will still have to set your previous default manually.
+- **Easy usage:** `open-window FILE` opens `FILE` with the default program associated with that filetype in Windows
+- **More general:** `open-window -a FILE` associates the script with the filetype of that file, meaning that you can run `xdg-open FILE` (the usual way of opening files on Linux) and the file will open with `open-window`
+    - You can revert this setting by running `open-window -d FILE`. You will still have to set your previous default manually.
 
-> *Protip:* I like to `alias open="xdg-open"` in all my Linux setups, to make them behave more like macOS. Also, I rarely (never) use the Linux open command, which starts a program in a new virutal terminal.
+> *Protip:* I like to `alias open="xdg-open"` in the `.bashrc` file on all my Linux setups, to make them behave more like macOS. Also, I rarely (never) use the actual Linux open command, which starts a program in a new virutal terminal.
 
 ## How it Works
 
@@ -56,5 +56,6 @@ Here are some limitations of the script as it is written currently, which may re
     - Yes, this includes any folder that is in another part of the Windows disk, or on any removable drives, regardless of whether or not they are accessible in Windows.
 - Some Windows applications will prevent other programs from writing to a file while it is open, which will cause the script to fail. This affects reloading a file (regardless of whether or not it has been edited), as well as attempting to open a different file of with the same name.
 - Only the file specified will be copied if required. This may cause issues when opening files that have dependencies, such as an html file which imports CSS stylesheets or Javascript files.
+- Files with spaces in their name will have the spaces converted to dashes on Windows. 
 
 [wsl]: https://msdn.microsoft.com/en-us/commandline/wsl/about
