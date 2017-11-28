@@ -25,7 +25,6 @@ PrintUsage() {
   EchoUsage ".SH NAME" >> $ManFile
   EchoUsage "$Exe \- Windows Subsystem for Linux opening utility"
   EchoUsage ".SH SYNOPSIS"
-  EchoUsage "$Exe FILE"
   EchoUsage "$Exe [-a][-d] FILE"
   EchoUsage ".SH DESCRIPTION"
   EchoUsage "$Exe is a shell script that uses Bash for Windows' \`cmd.exe /C start\` command to open files with Windows applications."
@@ -103,22 +102,18 @@ shift $(( OPTIND - 1 ))
 
 # Open file
 File=$1
-echo "@=$@"
-echo "File=$File"
 if [[ ! -z $File ]]; then
   # Check file existence
   [[ ! -e $File ]] && Error "File does not exist: $File"
 
   # Move file to Windows partition, if necessary
   FilePath="$(readlink -f $File | sed 's/ /-/g')"
-  echo "FilePath(init)=$FilePath"
-  echo "basename(FilePath)=$(basename $FilePath)"
   if [[ $FilePath != $WinHome/* ]]; then
     Warning "File not in Windows partition: $FilePath"
-    TempFolder=$WinHome/$Exe
-    [[ ! -e $TempFolder ]] && echo "Creating temporary folder: $TempFolder" && mkdir $TempFolder
+    TempFolder=$WinHome/AppData/Local/Temp/$Exe
+    [[ ! -e $TempFolder ]] && echo "Creating temporary folder: $TempFolder" && mkdir --parents $TempFolder
     FilePath="$TempFolder/$(basename $FilePath)"
-    echo "FilePath=$FilePath"
+    echo -n "Copying "
     cp -v $File "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
   fi
 
