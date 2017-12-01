@@ -6,7 +6,7 @@ A shell script utility for opening files from the [Windows Subsystem for Linux][
 
 ### Installation
 
-Download the shell script and put it somewhere in your PATH. If you don't know how to do that, here are a few lines that should do the trick. (But if you aren't really used to using the command line, this might not be the utility for you! :dizzy_face:)
+Download the shell script and put it somewhere in your PATH. If you don't know how to do that, here are a few lines that should do the trick. (But if you aren't really one to use the command line, this utility might not be that useful! :dizzy_face:)
 
 ```bash
 mkdir ~/bin
@@ -35,8 +35,8 @@ cmd.exe /C start C:\\Users\augus\Documents\resume.pdf
 
 and Bash will call Command Prompt, which will call start, which will open the file. However, this has several caveats:
 
-- The file path must be in Windows format, which means backslashes for directories and the `C://` prefix. For reference, on the Windows subsystem, the equivalent file path would be `/mnt/c/Users/augus/Documents/resume.pdf`
-- The file must be in the Windows "partition", meaning any files in your Linux home folder is inaccessible and will return an error.
+- The file path must be in Windows format, which means backslashes for directories and the `C:\\` prefix. For reference, on Bash for Windows, the equivalent file path would be `/mnt/c/Users/augus/Documents/resume.pdf`
+- The file must be in the Windows "partition", meaning any files in your Linux home folder or any other folder that isn't under `/mnt/c` is inaccessible and will return an error.
 
 `open-window` strives to make this open window a little wider by facilitating this path conversion, as well as copying any files in the Linux partition you would like to open to a temporary directory on the Windows partition.
 
@@ -54,8 +54,9 @@ Here are some limitations of the script as it is written currently, which may re
 - On first run, users will be requested to select their Windows home folder. This cannot be done programatically, as Linux usernames are independent of Windows usernames
 - Any file not in your Windows user home folder will be copied into the `%HOME%\AppData\Local\Temp\open-window` before being opened.
     - Yes, this includes any folder that is in another part of the Windows disk, or on any removable drives, regardless of whether or not they are accessible in Windows.
+    - You can also use `open-window` to open directories, but we will not allow directories not in the Windows partition (because we don't want to recursive copy all those files over)
 - Some Windows applications will prevent other programs from writing to a file while it is open, which will cause the script to fail. This affects reloading a file (regardless of whether or not it has been edited), as well as attempting to open a different file of with the same name.
 - Only the file specified will be copied if required. This may cause issues when opening files that have dependencies, such as an html file which imports CSS stylesheets or Javascript files.
-- Files with spaces in their name will have the spaces converted to dashes on Windows. 
+- Files with spaces in their name will have the spaces converted to dashes on Windows.
 
 [wsl]: https://msdn.microsoft.com/en-us/commandline/wsl/about

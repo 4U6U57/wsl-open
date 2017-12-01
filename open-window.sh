@@ -19,27 +19,38 @@ Error() {
 Warning() {
   echo "$Exe: WARNING: $@" >&2
 }
-PrintUsage() {
-  ManFile=$(mktemp)
-  EchoUsage ".TH man 1 \"$(date)\" \"1.0\" \"$Exe man page\""
-  EchoUsage ".SH NAME" >> $ManFile
-  EchoUsage "$Exe \- Windows Subsystem for Linux opening utility"
-  EchoUsage ".SH SYNOPSIS"
-  EchoUsage "$Exe [-a][-d] FILE"
-  EchoUsage ".SH DESCRIPTION"
-  EchoUsage "$Exe is a shell script that uses Bash for Windows' \`cmd.exe /C start\` command to open files with Windows applications."
-  EchoUsage ".SH OPTIONS"
-  EchoUsage ".IP -h"
-  EchoUsage "displays this help page"
-  EchoUsage ".IP -a"
-  EchoUsage "associates this script with this filetype with xdg-open"
-  EchoUsage ".IP -d"
-  EchoUsage "disassociates this script with this filetype with xdg-open"
-  man $ManFile
-  rm -f $ManFile
+
+Usage() {
+cat << _USAGE
+.TH man 1 \"$(date)\" \"1.0\" \"$Exe man page\"
+.SH NAME
+$Exe \- Windows Subsystem for Linux opening utility
+.SH SYNOPSIS
+$Exe [-a][-d] FILE
+.SH DESCRIPTION
+$Exe is a shell script that uses Bash for Windows' \`cmd.exe /C start\` command to open files with Windows applications.
+.SH OPTIONS
+.IP -h
+displays this help page
+.IP -a
+associates this script with this filetype with xdg-open
+.IP -d
+disassociates this script with this filetype with xdg-open
+_USAGE
 }
-EchoUsage() {
-  echo "$@" >> $ManFile
+
+DeskFile=~/.local/share/applications/$Exe.desktop
+Desktop() {
+cat << _DESKTOP
+[Desktop Entry]
+Name=Open Window
+Exec=open-window %u
+Type=Application
+_DESKTOP
+}
+MakeDesktop() {
+  [[ ! -e $(dirname $DeskFile) ]] && mkdir --parents $(dirname $DeskFile)
+  Desktop > $DeskFile
 }
 
 # Check that we're on Windows Subsystem for Linux
@@ -71,10 +82,10 @@ if [[ -z $WinHome ]]; then
 fi
 
 # Check command line arguments
-while getopts "ha:d:" Opt; do
+while getopts "ha:d:w" Opt; do
   case $Opt in
     (h)
-      PrintUsage
+      man <(Usage)
       ;;
     (a)
       File=$OPTARG
@@ -93,6 +104,12 @@ while getopts "ha:d:" Opt; do
       echo "Disassociating type $Type with $Exe"
       sed -i "/$TypeSafe.*open-window/d" $DefaultsFile
       ;;
+    (w)
+      echo "Associating default-web-browser with $Exe"
+      [[ ! -e $DeskFile ]] && MakeDesktop
+      xdg-settings set default-web-browser $Exe.desktop
+      xdg-settings check default-web-browser $Exe.desktop || Error "Could not set $Exe as default-web-browser"
+      ;;
     (\?)
       Error "Invalid option: -$OPTARG"
       ;;
@@ -109,6 +126,7 @@ if [[ ! -z $File ]]; then
   # Move file to Windows partition, if necessary
   FilePath="$(readlink -f $File | sed 's/ /-/g')"
   if [[ $FilePath != $WinHome/* ]]; then
+    [[ ! -f $FilePath ]] && Error "Directory not in Windows partition: $FilePath"
     Warning "File not in Windows partition: $FilePath"
     TempFolder=$WinHome/AppData/Local/Temp/$Exe
     [[ ! -e $TempFolder ]] && echo "Creating temporary folder: $TempFolder" && mkdir --parents $TempFolder
