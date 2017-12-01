@@ -105,10 +105,20 @@ while getopts "ha:d:w" Opt; do
       sed -i "/$TypeSafe.*open-window/d" $DefaultsFile
       ;;
     (w)
-      echo "Associating default-web-browser with $Exe"
-      [[ ! -e $DeskFile ]] && MakeDesktop
-      xdg-settings set default-web-browser $Exe.desktop
-      xdg-settings check default-web-browser $Exe.desktop || Error "Could not set $Exe as default-web-browser"
+      if echo $BROWSER | grep "$Exe" >/dev/null; then
+        Warning "$Exe is already set as BROWSER"
+      else
+        BashFile=~/.bashrc
+        [[ ! -e $BashFile ]] && touch $BashFile
+        echo "Adding $Exe to BROWSER environmental variables"
+        if grep "BROWSER=.*$Exe" $BashFile >/dev/null; then
+          Error "$BashFile already adds $Exe to BROWSER, check it for problems or restart your Bash"
+        else
+          echo >> $BashFile
+          echo "# Adding $Exe as a browser for Bash for Windows" >> $BashFile
+          echo "BROWSER=\$BROWSER:$Exe" >> $BashFile
+        fi
+      fi
       ;;
     (\?)
       Error "Invalid option: -$OPTARG"
@@ -120,24 +130,29 @@ shift $(( OPTIND - 1 ))
 # Open file
 File=$1
 if [[ ! -z $File ]]; then
-  # Check file existence
-  [[ ! -e $File ]] && Error "File does not exist: $File"
+  if [[ -e $File ]]; then
+    # File or directory
+    # Move file to Windows partition, if necessary
+    FilePath="$(readlink -f $File | sed 's/ /-/g')"
+    if [[ $FilePath != $WinHome/* ]]; then
+      [[ ! -f $FilePath ]] && Error "Directory not in Windows partition: $FilePath"
+      Warning "File not in Windows partition: $FilePath"
+      TempFolder=$WinHome/AppData/Local/Temp/$Exe
+      [[ ! -e $TempFolder ]] && echo "Creating temporary folder: $TempFolder" && mkdir --parents $TempFolder
+      FilePath="$TempFolder/$(basename $FilePath)"
+      echo -n "Copying "
+      cp -v $File "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
+    fi
 
-  # Move file to Windows partition, if necessary
-  FilePath="$(readlink -f $File | sed 's/ /-/g')"
-  if [[ $FilePath != $WinHome/* ]]; then
-    [[ ! -f $FilePath ]] && Error "Directory not in Windows partition: $FilePath"
-    Warning "File not in Windows partition: $FilePath"
-    TempFolder=$WinHome/AppData/Local/Temp/$Exe
-    [[ ! -e $TempFolder ]] && echo "Creating temporary folder: $TempFolder" && mkdir --parents $TempFolder
-    FilePath="$TempFolder/$(basename $FilePath)"
-    echo -n "Copying "
-    cp -v $File "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
+    FileWin=$(echo $FilePath | cut -d "/" -f 3-)
+    FileWin="$(tr '[a-z]' '[A-Z]' <<< ${FileWin:0:1}):/${FileWin:1}"
+    FileWin="$(tr '/' '\\' <<< $FileWin)"
+  elif [[ $File == *://* ]]; then
+    # Link
+    FileWin=$File
+  else
+    Error "File/directory does not exist: $File"
   fi
-
-  FileWin=$(echo $FilePath | cut -d "/" -f 3-)
-  FileWin="$(tr '[a-z]' '[A-Z]' <<< ${FileWin:0:1}):/${FileWin:1}"
-  FileWin="$(tr '/' '\\' <<< $FileWin)"
 
   # Open the file with windows
   cmd.exe /C start "$FileWin"
