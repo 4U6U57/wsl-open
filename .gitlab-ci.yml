@@ -1,10 +1,10 @@
 image: ubuntu:latest
 
 before_script:
-  - apt update -yqq
-  - apt install -yyq shellcheck
+  - apt-get update -yqq
+  - apt-get install -yyq shellcheck
 
 test:
   script:
-    - shellcheck git-open
+    - shellcheck open-window.sh
     - test/bats/bin/bats test/
