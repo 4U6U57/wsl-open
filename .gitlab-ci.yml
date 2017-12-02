@@ -1,0 +1,9 @@
+image: busybox:latest
+
+before_script:
+  - apt-get update -yqq
+  - apt-get install -yyq shellcheck
+
+script:
+  - shellcheck git-open
+  - test/bats/bin/bats test/
