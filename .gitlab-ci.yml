@@ -1,8 +1,8 @@
-image: busybox:latest
+image: ubuntu:latest
 
 before_script:
-  - apt-get update -yqq
-  - apt-get install -yyq shellcheck
+  - apt update -yqq
+  - apt install -yyq shellcheck
 
 test:
   script:
