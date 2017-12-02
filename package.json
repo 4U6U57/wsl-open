@@ -29,5 +29,9 @@
     "bats": "^0.4.2",
     "bats-support": "git+https://github.com/ztombol/bats-support.git",
     "bats-assert": "github:ztombol/bats-assert"
+  },
+  "preferGlobal": true,
+  "bin": {
+    "wsl-open": "wsl-open.sh"
   }
 }
