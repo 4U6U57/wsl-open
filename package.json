@@ -1,0 +1,38 @@
+{
+  "name": "wsl-open",
+  "version": "1.0.1",
+  "description": "Utility for opening files from the Windows Subsystem for Linux (WSL) in native Windows applications",
+  "main": "wsl-open.sh",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "npm run lint-sh; npm run unit",
+    "lint-sh": "shellcheck *.sh",
+    "unit": "bats *.bats"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/4U6U57/wsl-open.git"
+  },
+  "keywords": [
+    "wsl",
+    "bash",
+    "xdg-open"
+  ],
+  "author": "August Valera",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/4U6U57/wsl-open/issues"
+  },
+  "homepage": "https://gitlab.com/4U6U57/wsl-open#README",
+  "devDependencies": {
+    "bats": "^0.4.2",
+    "bats-support": "git+https://github.com/ztombol/bats-support.git",
+    "bats-assert": "github:ztombol/bats-assert"
+  },
+  "preferGlobal": true,
+  "bin": {
+    "wsl-open": "wsl-open.sh"
+  }
+}

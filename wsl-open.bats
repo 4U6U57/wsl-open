@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
-load "bats-support/load"
-load "bats-assert/load"
+load "node_modules/bats-support/load"
+load "node_modules/bats-assert/load"
 
 TestFolder="test_folder"
 
