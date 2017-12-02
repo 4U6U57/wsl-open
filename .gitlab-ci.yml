@@ -9,4 +9,5 @@ before_script:
 
 test:
   script:
-    - test/test.sh
+    - shellcheck open-window.sh
+    - test/bats/bin/bats test/
