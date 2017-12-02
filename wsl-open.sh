@@ -25,7 +25,7 @@ Warning() {
 Usage="
 .TH man 1 \"$(date)\" \"1.0\" \"$Exe man page\"
 .SH NAME
-$Exe \- Windows Subsystem for Linux opening utility
+$Exe \\- Windows Subsystem for Linux opening utility
 .SH SYNOPSIS
 $Exe [-w] [ -a | -d ] FILE
 .SH DESCRIPTION
@@ -67,6 +67,7 @@ WinHome=""
 ConfigFile=~/.$Exe
 DefaultsFile=~/.mailcap
 if [[ -e $ConfigFile ]]; then
+  # shellcheck source=/dev/null
   source "$ConfigFile"
 else
   echo "Creating configuration file: $ConfigFile"
@@ -117,7 +118,7 @@ while getopts "ha:d:wx" Opt; do
         BashFile=~/.bashrc
         [[ ! -e $BashFile ]] && touch $BashFile
         echo "Adding $Exe to BROWSER environmental variables"
-        if grep "export\s*BROWSER=.*$Exe" $BashFile >/dev/null; then
+        if grep "export.*BROWSER=.*$Exe" $BashFile >/dev/null; then
           Error "$BashFile already adds $Exe to BROWSER, check it for problems or restart your Bash"
         else
           {
@@ -156,8 +157,8 @@ if [[ ! -z $File ]]; then
     fi
 
     FileWin=$(echo "$FilePath" | cut -d "/" -f 3-)
-    FileWin="$(tr '[:lower:]' '[:upper:]' <<< ${FileWin:0:1}):/${FileWin:1}"
-    FileWin="$(tr '/' '\\' <<< $FileWin)"
+    FileWin="$(tr '[:lower:]' '[:upper:]' <<< "${FileWin:0:1}"):/${FileWin:1}"
+    FileWin="$(tr '/' \\ <<< "$FileWin")"
   elif [[ $File == *://* ]]; then
     # Link
     FileWin=$File

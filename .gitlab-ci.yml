@@ -6,10 +6,8 @@ variables:
 before_script:
   - apt-get update -yqq
   - apt-get install -yqq npm git
-  - apt-get install -yqq shellcheck
 
 test:
   script:
     - npm install
-    - shellcheck wsl-open.sh
     - npm test

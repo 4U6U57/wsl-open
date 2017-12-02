@@ -7,8 +7,9 @@
     "test": "test"
   },
   "scripts": {
-    "test": "npm run unit",
-    "unit": "PATH=$(npm bin):$PATH bats ."
+    "test": "npm run lint-sh; npm run unit",
+    "lint-sh": "shellcheck *.sh",
+    "unit": "bats *.bats"
   },
   "repository": {
     "type": "git",
