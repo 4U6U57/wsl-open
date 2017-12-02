@@ -9,5 +9,6 @@ before_script:
 
 test:
   script:
+    - npm install
     - shellcheck wsl-open.sh
-    - test/bats/bin/bats test/
+    - npm test
