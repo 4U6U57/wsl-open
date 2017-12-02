@@ -40,7 +40,7 @@ disassociates this script with xdg-open for files like this
 .IP -w
 associates this script with xdg-open for links (http://)
 .IP -x
-dry run, does not run any commands, just echos. Useful for testing.
+dry run, does not open file, just echos command used to do it. Useful for testing.
 "
 
 # Generate a desktop file for this script. not actually used anymore
@@ -88,7 +88,7 @@ if [[ -z $WinHome ]]; then
 fi
 
 # Check command line arguments
-while getopts "ha:d:w" Opt; do
+while getopts "ha:d:wx" Opt; do
   case $Opt in
     (h)
       man <(echo "$Usage")
@@ -100,7 +100,7 @@ while getopts "ha:d:w" Opt; do
       TypeSafe="${Type//\//\\/}"
       echo "Associating type $Type with $Exe"
       sed -i "/$TypeSafe/d" $DefaultsFile
-      echo "$Type; open-window '%s'" >> $DefaultsFile
+      echo "$Type; open-window '%s'" >>$DefaultsFile
       ;;
     (d)
       File=$OPTARG
@@ -166,5 +166,9 @@ if [[ ! -z $File ]]; then
   fi
 
   # Open the file with windows
-  $OpenExe "$FileWin"
+  if ! $DryRun; then
+    $OpenExe "$FileWin"
+  else
+    echo "Run this to open file: $OpenExe \"$FileWin\""
+  fi
 fi
