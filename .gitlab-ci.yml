@@ -5,7 +5,8 @@ variables:
 
 before_script:
   - apt-get update -yqq
-  - apt-get install -yyq shellcheck
+  - apt-get install -yqq npm
+  - apt-get install -yqq shellcheck
 
 test:
   script:
