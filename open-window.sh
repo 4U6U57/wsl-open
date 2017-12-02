@@ -10,8 +10,9 @@
 #
 
 Exe=$(basename "$0" .sh)
+OpenExe="powershell.exe Start"
 
-# Error function
+# Error functions
 Error() {
   echo "$Exe: ERROR: $*" >&2
   exit 1
@@ -20,23 +21,29 @@ Warning() {
   echo "$Exe: WARNING: $*" >&2
 }
 
+# Usage message, ran on help (-h)
 Usage="
 .TH man 1 \"$(date)\" \"1.0\" \"$Exe man page\"
 .SH NAME
 $Exe \- Windows Subsystem for Linux opening utility
 .SH SYNOPSIS
-$Exe [-a][-d] FILE
+$Exe [-w] [ -a | -d ] FILE
 .SH DESCRIPTION
-$Exe is a shell script that uses Bash for Windows' \`cmd.exe /C start\` command to open files with Windows applications.
+$Exe is a shell script that uses Bash for Windows' \`$OpenExe\` command to open files with Windows applications.
 .SH OPTIONS
 .IP -h
 displays this help page
 .IP -a
-associates this script with this filetype with xdg-open
+associates this script with xdg-open for files like this
 .IP -d
-disassociates this script with this filetype with xdg-open
+disassociates this script with xdg-open for files like this
+.IP -w
+associates this script with xdg-open for links (http://)
+.IP -x
+dry run, does not run any commands, just echos. Useful for testing.
 "
 
+# Generate a desktop file for this script. not actually used anymore
 DeskFile=~/.local/share/applications/$Exe.desktop
 Desktop="
 [Desktop Entry]
@@ -44,11 +51,13 @@ Name=Open Window
 Exec=open-window %u
 Type=Application
 "
-
 MakeDesktop() {
   [[ ! -e $(dirname "$DeskFile") ]] && mkdir --parents "$(dirname "$DeskFile")"
   echo "$Desktop" >"$DeskFile"
 }
+
+# Used for dry runs
+DryRun=false
 
 # Check that we're on Windows Subsystem for Linux
 ! grep -q "Microsoft" /proc/sys/kernel/osrelease &>/dev/null && Error "Could not detect Windows Subsystem"
@@ -108,18 +117,21 @@ while getopts "ha:d:w" Opt; do
         BashFile=~/.bashrc
         [[ ! -e $BashFile ]] && touch $BashFile
         echo "Adding $Exe to BROWSER environmental variables"
-        if grep "BROWSER=.*$Exe" $BashFile >/dev/null; then
+        if grep "export\s*BROWSER=.*$Exe" $BashFile >/dev/null; then
           Error "$BashFile already adds $Exe to BROWSER, check it for problems or restart your Bash"
         else
           {
             echo;
             echo "# Adding $Exe as a browser for Bash for Windows";
-            echo "BROWSER=\$BROWSER:$Exe";
+            echo "export BROWSER=\$BROWSER:$Exe";
           } >>$BashFile
         fi
       fi
       ;;
-    (\?)
+    (x)
+      DryRun=true
+      ;;
+    (?)
       Error "Invalid option: -$OPTARG"
       ;;
   esac
@@ -154,5 +166,5 @@ if [[ ! -z $File ]]; then
   fi
 
   # Open the file with windows
-  cmd.exe /C start "$FileWin"
+  $OpenExe "$FileWin"
 fi
