@@ -9,5 +9,5 @@ before_script:
 
 test:
   script:
-    - shellcheck open-window.sh
+    - shellcheck wsl-open.sh
     - test/bats/bin/bats test/
