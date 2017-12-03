@@ -1,43 +1,10 @@
 # wsl-open (:open_file_folder: :arrow_right: :computer:)
 
+[![pipeline
+status](https://gitlab.com/4U6U57/wsl-open/badges/master/pipeline.svg)](https://gitlab.com/4U6U57/wsl-open/commits/master)
+
 Utility for opening files within the [Windows Subsystem for Linux][wsl] command
 line in Windows GUI applications.
-
-## Installation
-
-### npm
-
-The easiest way to get it is to use the [Node Package Manager][npm] and install
-it globally.
-
-```bash
-# Get npm if you don't have it already
-sudo apt-get install -yqq npm
-
-# Install
-sudo npm install -g wsl-open
-```
-
-### Bash script
-
-**wsl-open** is actually just a single, self contained bash script, so the bare
-minimum installation is simply downloading the script, either by cloning the
-repo or downloading it from this site, and then adding it to your path. Here is
-an example:
-
-```bash
-# Make a bin folder in your home directory
-mkdir ~/bin
-
-# Add the bin folder to your PATH in your bashrc
-echo "[[ -e ~/bin ]] && PATH=$PATH:~/bin" » .bashrc
-
-# Download the script to a file named 'wsl-open'
-curl -o ~/bin/wsl-open https://raw.githubusercontent.com/4U6U57/wsl-open/master/wsl-open.sh
-
-# Mark it as executable
-chmod +x ~/bin/wsl-open
-```
 
 ## Usage
 
@@ -91,6 +58,42 @@ wsl-open -w
 
 > **Protip**: I like to furthur generalize my scripts by setting `alias
 > open='xdg-open'` on my Linux machines, which make them behave more like macOS
+
+## Installation
+
+### npm
+
+The easiest way to get it is to use the [Node Package Manager][npm] and install
+it globally.
+
+```bash
+# Get npm if you don't have it already
+sudo apt-get install -yqq npm
+
+# Install
+sudo npm install -g wsl-open
+```
+
+### Bash script
+
+**wsl-open** is actually just a single, self contained bash script, so the bare
+minimum installation is simply downloading the script, either by cloning the
+repo or downloading it from this site, and then adding it to your path. Here is
+an example:
+
+```bash
+# Make a bin folder in your home directory
+mkdir ~/bin
+
+# Add the bin folder to your PATH in your bashrc
+echo "[[ -e ~/bin ]] && PATH=$PATH:~/bin" » .bashrc
+
+# Download the script to a file named 'wsl-open'
+curl -o ~/bin/wsl-open https://raw.githubusercontent.com/4U6U57/wsl-open/master/wsl-open.sh
+
+# Mark it as executable
+chmod +x ~/bin/wsl-open
+```
 
 [wsl]: https://msdn.microsoft.com/en-us/commandline/wsl/about
 [npm]: https://npmjs.com
