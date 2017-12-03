@@ -3,8 +3,8 @@
 load "node_modules/bats-support/load"
 load "node_modules/bats-assert/load"
 
-TestFolder="test_folder"
-TestDisk=~/test_disk
+TestFolder="$BATS_TEST_DIRNAME/test_folder"
+TestDisk="$BATS_TEST_DIRNAME/test_disk"
 Source="$BATS_TEST_DIRNAME/wsl-open.sh"
 Exe=$(basename $Source .sh)
 ConfigFile=~/.$Exe
@@ -12,17 +12,23 @@ AllDisk="/mnt/*"
 DetectWsl=$([[ $(uname -r) == *Microsoft ]])
 
 setup() {
+  for TempFolder in $TestFolder $TestDisk; do
+    if [ -e $TempFolder ]; then
+      rm -rf $TempFolder
+    fi
+    refute [ -e $TempFolder ]
+  done
   mkdir $TestFolder
   cd $TestFolder
   # Any test that is after the environment is setup (created virtual WinDisk)
   # should assert that we have a valid WinDisk to work on
-  if [[ $BATS_TEST_NAME == env:* ]]; then
+  if [[ $BATS_TEST_NAME != env:* ]]; then
     assert_valid_windisk
   fi
 }
 
 @test "env: test environment" {
-assert_equal $(basename $(pwd)) $TestFolder
+assert_equal $(pwd) $TestFolder
 }
 
 @test "env: not on WSL" {
@@ -38,26 +44,25 @@ fi
 }
 
 @test "env: emulate WinDisk" {
-skip
 # Load configuration, if exists
-if [[ -e $ConfigFile ]]; then
+if [ -e $ConfigFile ]; then
   source $ConfigFile
 fi
 # If WinDisk is not set, we need to find it or emulate it
-if [[ -z $WinDisk ]]; then
+if [ -z $WinDisk ]; then
   # If we're on a real WSL machine, need to find it
   if $DetectWsl; then
     for Disk in $AllDisk; do
       # If we find a Windows folder, this is the disk with the OS
-      [ -e $Disk/Windows/System32 ] && WinDisk=$Disk && echo "WinDisk=$WinDisk" >>"$ConfigFile" && break
+      [ -e $Disk/Windows/System32 ] && WinDisk=$Disk && break
     done
   else
     # We're on a non-WSL machine, emulate and create
-    WinDisk="/mnt/c"
-    mkdir $TestDisk
-    assert [ -d $TestDisk ]
-    mount $TestDisk $WinDisk
+    WinDisk=$TestDisk
+    create_valid_windisk
   fi
+  # Save WinDisk to config file
+  echo "WinDisk=$WinDisk" >>"$ConfigFile"
 fi
 refute [ -z $WinDisk ]
 assert [ -d $WinDisk ]
@@ -82,15 +87,25 @@ assert_output ""
 
 teardown() {
   cd ..
-  rm -rf $TestFolder
+  rm -rf $TestFolder $TestDisk
 }
 
 ## Helper functions
+create_valid_windisk() {
+  mkdir $WinDisk
+  mkdir $WinDisk/Windows
+  mkdir $WinDisk/Windows/System32
+  mkdir $WinDisk/Users
+  mkdir $WinDisk/Users/TestUser
+}
 assert_valid_windisk() {
-  if [[ -e $ConfigFile ]]; then
+  if [ -e $ConfigFile ]; then
     source $ConfigFile
   fi
   refute [ -z $WinDisk ]
+  if [ ! -d $WinDisk ]; then
+    create_valid_windisk
+  fi
   assert [ -d $WinDisk ]
   assert [ -d $WinDisk/Windows/System32 ]
 }
