@@ -9,8 +9,13 @@
 # @date 2017-11-23
 #
 
+# Variables
 Exe=$(basename "$0" .sh)
-OpenExe="powershell.exe Start"
+OpenExe=${OpenExe:-"powershell.exe Start"}
+EnableWslCheck=${EnableWslCheck:-true}
+DryRun=false
+DefaultsFile=${DefaultsFile:-~/.mailcap}
+BashFile=${BashFile:-~/.bashrc}
 
 # Error functions
 Error() {
@@ -43,38 +48,37 @@ associates this script with xdg-open for links (http://)
 dry run, does not open file, just echos command used to do it. Useful for testing.
 "
 
-# Generate a desktop file for this script. not actually used anymore
-DeskFile=~/.local/share/applications/$Exe.desktop
-Desktop="
-[Desktop Entry]
-Name=Open Window
-Exec=open-window %u
-Type=Application
-"
-MakeDesktop() {
-  [[ ! -e $(dirname "$DeskFile") ]] && mkdir --parents "$(dirname "$DeskFile")"
-  echo "$Desktop" >"$DeskFile"
+# Path conversion functions
+WinPathToLinux() {
+  Path=$*
+  # Sanitize, remove \r and \n
+  Path=$(tr -d '\r\n' <<< "$Path")
+  # C:\\folder\path -> C:\folder\path (only if there is \\)
+  Path=${Path//\\\\/\\}
+  # C:\folder\path -> C:/folder/path
+  Path=${Path//\\/\/}
+  # C:/folder/path -> /mnt/c/folder/path
+  # shellcheck disable=SC2018,SC2019
+  Path=/mnt/$(tr 'A-Z' 'a-z' <<< "${Path:0:1}")${Path:2}
+  echo "$Path"
+}
+LinuxPathToWin() {
+  Path=$*
+  [[ $Path != /mnt/* ]] && exit
+  # /mnt/c/folder/path -> c/folder/path
+  Path=$(cut -d "/" -f 3- <<< "$Path")
+  # c/folder/path -> C://folder/path
+  Path=$(tr '[:lower:]' '[:upper:]' <<< "${Path:0:1}"):/${Path:1}
+  # C://folder/path -> C:\\folder\path
+  Path=${Path//\//\\}
+  echo "$Path"
 }
 
-# Used for dry runs
-DryRun=false
-
 # Check that we're on Windows Subsystem for Linux
-! grep -q "Microsoft" /proc/sys/kernel/osrelease &>/dev/null && Error "Could not detect Windows Subsystem"
-
-# Load preferences
-WinHome=""
-ConfigFile=~/.$Exe
-DefaultsFile=~/.mailcap
-AllDisk="/mnt/*"
-if [[ -e $ConfigFile ]]; then
-  # shellcheck source=/dev/null
-  source "$ConfigFile"
-else
-  echo "Creating configuration file: $ConfigFile"
-  touch "$ConfigFile"
+# shellcheck disable=SC2154
+if $EnableWslCheck; then
+  [[ $(uname -r) != *Microsoft ]] && Error "Could not detect WSL (Windows Subsystem for Linux)"
 fi
-! [[ -e $DefaultsFile ]] && touch $DefaultsFile
 
 # Check command line arguments
 while getopts "ha:d:wx" Opt; do
@@ -103,7 +107,6 @@ while getopts "ha:d:wx" Opt; do
       if echo "$BROWSER" | grep "$Exe" >/dev/null; then
         Warning "$Exe is already set as BROWSER"
       else
-        BashFile=~/.bashrc
         [[ ! -e $BashFile ]] && touch $BashFile
         echo "Adding $Exe to BROWSER environmental variables"
         if grep "export.*BROWSER=.*$Exe" $BashFile >/dev/null; then
@@ -135,42 +138,25 @@ if [[ ! -z $File ]]; then
     FilePath="$(readlink -f "$File")"
 
     # shellcheck disable=SC2053
-    if [[ $FilePath != $AllDisk ]]; then
+    if [[ $FilePath != /mnt/* ]]; then
       # File or directory is not on a Windows accessible disk
       # If it is a directory, then we can't do anything, quit
       [[ ! -f $FilePath ]] && Error "Directory not in Windows partition: $FilePath"
       # If it's a file, we copy it to the user's temp folder before opening
       Warning "File not in Windows partition: $FilePath"
-      # Get user's home folder
-      if [[ -z $WinHome ]]; then
-        # Iterate through all Windows accessible disks, looking for the one with OS
-        WinDisk=""
-        for Disk in $AllDisk; do
-          # If we find a Windows folder, this is the disk with the OS
-          [[ -e $Disk/Windows ]] && WinDisk=$Disk && break
-        done
-        [[ -z $WinDisk ]] && Error "Could not detect Windows disk"
-        # Prompt user to select their home folder
-        echo "Select your Windows home folder:"
-        select WinHome in $WinDisk/Users/*; do break; done
-        [[ -z $WinHome ]] && Error "Could not find Windows home folder"
-        # Save home folder to configuration file to reuse next time
-        echo "WinHome=$WinHome" >>"$ConfigFile"
+      # If we do not have a temp folder assigned, find one using Windows
+      if [[ -z $TempFolder ]]; then
+        TempWin=$(cmd.exe /C echo %TEMP%)
+        TempDir=$(WinPathToLinux "$TempWin")
+        TempFolder="$TempDir/$Exe"
       fi
-      # Temp folder is where we'll save the file
-      TempFolder=$WinHome/AppData/Local/Temp/$Exe
       [[ ! -e $TempFolder ]] && Warning "Creating temp folder for $Exe to use: $TempFolder" && mkdir --parents "$TempFolder"
       FilePath="$TempFolder/$(basename "$FilePath")"
       echo -n "Copying "
       cp -v "$File" "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
     fi
 
-    # Convert file path to Windows path, using these two simple rules:
-    # - /mnt/[a-z] -> [A-Z]:\\
-    # - / -> \
-    FileWin=$(echo "$FilePath" | cut -d "/" -f 3-)
-    FileWin="$(tr '[:lower:]' '[:upper:]' <<< "${FileWin:0:1}"):/${FileWin:1}"
-    FileWin="$(tr "/" "\\" <<< "$FileWin")"
+    FileWin=$(LinuxPathToWin "$FilePath")
   elif [[ $File == *://* ]]; then
     # If "file" input is a link, just pass it directly
     FileWin=$File
