@@ -7,8 +7,10 @@
     "test": "test"
   },
   "scripts": {
-    "test": "for target in lint-sh unit; do npm run $target; done",
-    "lint-sh": "shellcheck *.sh",
+    "test": "for test in lint unit; do npm run $test; done",
+    "lint": "for lint in lint:md lint:sh; do npm run $lint; done",
+    "lint:sh": "shellcheck *.sh",
+    "lint:md": "markdownlint --config .markdownlint.json *.md",
     "unit": "bats *.bats"
   },
   "repository": {
@@ -30,6 +32,7 @@
     "bats": "^0.4.2",
     "bats-assert": "git+https://github.com/ztombol/bats-assert.git",
     "bats-support": "git+https://github.com/ztombol/bats-support.git",
+    "markdownlint-cli": "^0.5.0",
     "shellcheck": "0.0.8"
   },
   "preferGlobal": true,
