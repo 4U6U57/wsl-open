@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "npm run lint-sh; npm run unit",
+    "test": "for target in lint-sh unit; do npm run $target; done",
     "lint-sh": "shellcheck *.sh",
     "unit": "bats *.bats"
   },
@@ -28,8 +28,9 @@
   "homepage": "https://gitlab.com/4U6U57/wsl-open#README",
   "devDependencies": {
     "bats": "^0.4.2",
+    "bats-assert": "git+https://github.com/ztombol/bats-assert.git",
     "bats-support": "git+https://github.com/ztombol/bats-support.git",
-    "bats-assert": "github:ztombol/bats-assert"
+    "shellcheck": "0.0.8"
   },
   "preferGlobal": true,
   "bin": {
