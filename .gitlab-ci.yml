@@ -9,5 +9,5 @@ before_script:
 
 test:
   script:
-    - npm install
+    - npm install --unsafe-perm
     - npm test
