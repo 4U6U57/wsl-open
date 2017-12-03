@@ -44,9 +44,15 @@ chmod +x ~/bin/wsl-open
 Just run **wsl-open** with the file that you want to open.
 
 ```bash
-wsl-open { FILE | URL }
+wsl-open { FILE | DIRECTORY | URL }
 
 ```
+
+- `FILE` paths can be relative or absolute
+- `DIRECTORY` paths are the same, but can only refer to directories accessible
+  in Windows (under `/mnt/*` in WSL)
+- `URL`s must include the `http(s)://` or begin with `www`, same as how
+  `xdg-open` handles URLs
 
 ### Examples
 
@@ -82,6 +88,9 @@ wsl-open -u image.png
 # Associate wsl-open with links (set wsl-open as your shell's BROWSER)
 wsl-open -w
 ```
+
+> **Protip**: I like to furthur generalize my scripts by setting `alias
+> open='xdg-open'` on my Linux machines, which make them behave more like macOS
 
 [wsl]: https://msdn.microsoft.com/en-us/commandline/wsl/about
 [npm]: https://npmjs.com
