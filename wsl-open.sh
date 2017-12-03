@@ -92,8 +92,8 @@ while getopts "ha:d:wx" Opt; do
       Type=$(xdg-mime query filetype "$File")
       TypeSafe="${Type//\//\\/}"
       echo "Associating type $Type with $Exe"
-      sed -i "/$TypeSafe/d" $DefaultsFile
-      echo "$Type; $Exe '%s'" >>$DefaultsFile
+      sed -i "/$TypeSafe/d" "$DefaultsFile"
+      echo "$Type; $Exe '%s'" >>"$DefaultsFile"
       ;;
     (d)
       File=$OPTARG
@@ -101,22 +101,22 @@ while getopts "ha:d:wx" Opt; do
       Type=$(xdg-mime query filetype "$File")
       TypeSafe="${Type//\//\\/}"
       echo "Disassociating type $Type with $Exe"
-      sed -i "/$TypeSafe.*open-window/d" $DefaultsFile
+      sed -i "/$TypeSafe.*open-window/d" "$DefaultsFile"
       ;;
     (w)
       if echo "$BROWSER" | grep "$Exe" >/dev/null; then
         Warning "$Exe is already set as BROWSER"
       else
-        [[ ! -e $BashFile ]] && touch $BashFile
+        [[ ! -e $BashFile ]] && touch "$BashFile"
         echo "Adding $Exe to BROWSER environmental variables"
-        if grep "export.*BROWSER=.*$Exe" $BashFile >/dev/null; then
+        if grep "export.*BROWSER=.*$Exe" "$BashFile" >/dev/null; then
           Error "$BashFile already adds $Exe to BROWSER, check it for problems or restart your Bash"
         else
           {
             echo;
             echo "# Adding $Exe as a browser for Bash for Windows";
             echo "export BROWSER=\$BROWSER:$Exe";
-          } >>$BashFile
+          } >>"$BashFile"
         fi
       fi
       ;;
