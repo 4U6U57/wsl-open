@@ -10,4 +10,6 @@ before_script:
 test:
   script:
     - npm install --unsafe-perm=true
-    - npm test
+    - npm run lint:sh
+    - npm run lint:md
+    - npm run unit
