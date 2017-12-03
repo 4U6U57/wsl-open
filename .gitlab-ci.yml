@@ -13,3 +13,7 @@ test:
     - npm run lint:sh
     - npm run lint:md
     - npm run unit
+  artifacts:
+    paths:
+      - npm-debug.log
+    expire_in: 1 month
