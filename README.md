@@ -1,5 +1,7 @@
 # wsl-open (:open_file_folder: :arrow_right: :computer:)
 
+[![npm
+version](https://img.shields.io/npm/v/wsl-open.svg)](http://npmjs.com/package/wsl-open)
 [![pipeline
 status](https://gitlab.com/4U6U57/wsl-open/badges/master/pipeline.svg)](https://gitlab.com/4U6U57/wsl-open/commits/master)
 
