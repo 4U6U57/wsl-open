@@ -5,7 +5,7 @@ variables:
 
 before_script:
   - apt-get update -yqq
-  - apt-get install -yqq npm git
+  - apt-get install -yqq npm git wget
 
 test:
   script:
