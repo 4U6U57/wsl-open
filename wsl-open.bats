@@ -38,6 +38,7 @@ fi
 }
 
 @test "env: emulate WinDisk" {
+skip
 # Load configuration, if exists
 if [[ -e $ConfigFile ]]; then
   source $ConfigFile
