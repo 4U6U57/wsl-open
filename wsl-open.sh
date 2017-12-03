@@ -62,10 +62,11 @@ DryRun=false
 # Check that we're on Windows Subsystem for Linux
 ! grep -q "Microsoft" /proc/sys/kernel/osrelease &>/dev/null && Error "Could not detect Windows Subsystem"
 
-# Find windows path
+# Load preferences
 WinHome=""
 ConfigFile=~/.$Exe
 DefaultsFile=~/.mailcap
+AllDisk="/mnt/*"
 if [[ -e $ConfigFile ]]; then
   # shellcheck source=/dev/null
   source "$ConfigFile"
@@ -74,19 +75,6 @@ else
   touch "$ConfigFile"
 fi
 ! [[ -e $DefaultsFile ]] && touch $DefaultsFile
-
-if [[ -z $WinHome ]]; then
-  # Iterate through disks
-  WinDisk=""
-  for Disk in /mnt/*; do
-    [[ -e $Disk/Windows ]] && WinDisk=$Disk && break
-  done
-  [[ -z $WinDisk ]] && Error "Could not detect Windows disk"
-  echo "Select your Windows home folder:"
-  select WinHome in $WinDisk/Users/*; do break; done
-  [[ -z $WinHome ]] && Error "Could not find Windows home folder"
-  echo "WinHome=$WinHome" >>"$ConfigFile"
-fi
 
 # Check command line arguments
 while getopts "ha:d:wx" Opt; do
@@ -144,31 +132,55 @@ File=$1
 if [[ ! -z $File ]]; then
   if [[ -e $File ]]; then
     # File or directory
-    # Move file to Windows partition, if necessary
-    FilePath="$(readlink -f "$File" | sed 's/ /-/g')"
-    if [[ $FilePath != $WinHome/* ]]; then
+    FilePath="$(readlink -f "$File")"
+
+    # shellcheck disable=SC2053
+    if [[ $FilePath != $AllDisk ]]; then
+      # File or directory is not on a Windows accessible disk
+      # If it is a directory, then we can't do anything, quit
       [[ ! -f $FilePath ]] && Error "Directory not in Windows partition: $FilePath"
+      # If it's a file, we copy it to the user's temp folder before opening
       Warning "File not in Windows partition: $FilePath"
+      # Get user's home folder
+      if [[ -z $WinHome ]]; then
+        # Iterate through all Windows accessible disks, looking for the one with OS
+        WinDisk=""
+        for Disk in $AllDisk; do
+          # If we find a Windows folder, this is the disk with the OS
+          [[ -e $Disk/Windows ]] && WinDisk=$Disk && break
+        done
+        [[ -z $WinDisk ]] && Error "Could not detect Windows disk"
+        # Prompt user to select their home folder
+        echo "Select your Windows home folder:"
+        select WinHome in $WinDisk/Users/*; do break; done
+        [[ -z $WinHome ]] && Error "Could not find Windows home folder"
+        # Save home folder to configuration file to reuse next time
+        echo "WinHome=$WinHome" >>"$ConfigFile"
+      fi
+      # Temp folder is where we'll save the file
       TempFolder=$WinHome/AppData/Local/Temp/$Exe
-      [[ ! -e $TempFolder ]] && echo "Creating temporary folder: $TempFolder" && mkdir --parents "$TempFolder"
+      [[ ! -e $TempFolder ]] && Warning "Creating temp folder for $Exe to use: $TempFolder" && mkdir --parents "$TempFolder"
       FilePath="$TempFolder/$(basename "$FilePath")"
       echo -n "Copying "
       cp -v "$File" "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
     fi
 
+    # Convert file path to Windows path, using these two simple rules:
+    # - /mnt/[a-z] -> [A-Z]:\\
+    # - / -> \
     FileWin=$(echo "$FilePath" | cut -d "/" -f 3-)
     FileWin="$(tr '[:lower:]' '[:upper:]' <<< "${FileWin:0:1}"):/${FileWin:1}"
-    FileWin="$(tr '/' \\ <<< "$FileWin")"
+    FileWin="$(tr "/" "\\" <<< "$FileWin")"
   elif [[ $File == *://* ]]; then
-    # Link
+    # If "file" input is a link, just pass it directly
     FileWin=$File
   else
     Error "File/directory does not exist: $File"
   fi
 
-  # Open the file with windows
+  # Open the file with Windows
   if ! $DryRun; then
-    $OpenExe "$FileWin"
+    $OpenExe "\"$FileWin\""
   else
     echo "Run this to open file: $OpenExe \"$FileWin\""
   fi
