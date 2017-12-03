@@ -4,6 +4,7 @@ load "node_modules/bats-support/load"
 load "node_modules/bats-assert/load"
 
 TestFolder="test_folder"
+TestDisk=~/test_disk
 Source="$BATS_TEST_DIRNAME/wsl-open.sh"
 Exe=$(basename $Source .sh)
 ConfigFile=~/.$Exe
@@ -52,7 +53,9 @@ if [[ -z $WinDisk ]]; then
   else
     # We're on a non-WSL machine, emulate and create
     WinDisk="/mnt/c"
-    mkdir $WinDisk
+    mkdir $TestDisk
+    assert [ -d $TestDisk ]
+    mount $TestDisk $WinDisk
   fi
 fi
 refute [ -z $WinDisk ]

@@ -11,3 +11,7 @@ test:
   script:
     - npm install --unsafe-perm=true
     - npm test
+  artifacts:
+    paths:
+      - npm-debug.log
+    expire_in: 1 month
