@@ -59,9 +59,6 @@ MakeDesktop() {
 # Used for dry runs
 DryRun=false
 
-# Check that we're on Windows Subsystem for Linux
-! grep -q "Microsoft" /proc/sys/kernel/osrelease &>/dev/null && Error "Could not detect Windows Subsystem"
-
 # Load preferences
 WinHome=""
 ConfigFile=~/.$Exe
@@ -75,6 +72,12 @@ else
   touch "$ConfigFile"
 fi
 ! [[ -e $DefaultsFile ]] && touch $DefaultsFile
+
+# Check that we're on Windows Subsystem for Linux
+# shellcheck disable=SC2154
+if [[ -z $EnableWslCheck ]] || $EnableWslCheck; then
+  [[ $(uname -r) != *Microsoft ]] && Error "Could not detect WSL (Windows Subsystem for Linux)"
+fi
 
 # Check command line arguments
 while getopts "ha:d:wx" Opt; do
@@ -143,12 +146,13 @@ if [[ ! -z $File ]]; then
       Warning "File not in Windows partition: $FilePath"
       # Get user's home folder
       if [[ -z $WinHome ]]; then
-        # Iterate through all Windows accessible disks, looking for the one with OS
-        WinDisk=""
-        for Disk in $AllDisk; do
-          # If we find a Windows folder, this is the disk with the OS
-          [[ -e $Disk/Windows ]] && WinDisk=$Disk && break
-        done
+        # First get Windows disk, which is the first disk we find that has a Windows/System32
+        if [[ -z $WinDisk ]]; then
+          for Disk in $AllDisk; do
+            # If we find a Windows folder, this is the disk with the OS
+            [[ -e $Disk/Windows/System32 ]] && WinDisk=$Disk && echo "WinDisk=$WinDisk" >>"$ConfigFile" && break
+          done
+        fi
         [[ -z $WinDisk ]] && Error "Could not detect Windows disk"
         # Prompt user to select their home folder
         echo "Select your Windows home folder:"
@@ -168,9 +172,10 @@ if [[ ! -z $File ]]; then
     # Convert file path to Windows path, using these two simple rules:
     # - /mnt/[a-z] -> [A-Z]:\\
     # - / -> \
-    FileWin=$(echo "$FilePath" | cut -d "/" -f 3-)
+      FileWin=$(echo "$FilePath" | cut -d "/" -f 3-)
     FileWin="$(tr '[:lower:]' '[:upper:]' <<< "${FileWin:0:1}"):/${FileWin:1}"
-    FileWin="$(tr "/" "\\" <<< "$FileWin")"
+    # shellcheck disable=SC1003
+    FileWin="$(tr '/' '\\' <<< "$FileWin")"
   elif [[ $File == *://* ]]; then
     # If "file" input is a link, just pass it directly
     FileWin=$File
