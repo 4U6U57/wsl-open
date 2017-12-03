@@ -89,7 +89,7 @@ while getopts "ha:d:wx" Opt; do
       TypeSafe="${Type//\//\\/}"
       echo "Associating type $Type with $Exe"
       sed -i "/$TypeSafe/d" $DefaultsFile
-      echo "$Type; open-window '%s'" >>$DefaultsFile
+      echo "$Type; $Exe '%s'" >>$DefaultsFile
       ;;
     (d)
       File=$OPTARG
