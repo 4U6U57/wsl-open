@@ -32,15 +32,28 @@ on the Windows disk before being opened.
 
 ### Copying from WSL
 
-> TODO: Add info
+If the requested file is not on a Windows accessible disk, it needs to be
+copied over before it can be opened by `powershell`/`cmd`. We use a temporary
+directory, specifically `%TEMP%\wsl-open%` (which resolves to
+`%USERPROFILE%\AppData\Temp\wsl-open`), to hold these files. Note that this
+means that there are a couple of caveats in doing so:
+
+- As the files being opened are only copies, any changes made with the Windows
+  application will not be reflected in the original.
+- Only the file requested is open, which means that files that have relative
+  dependencies (such as HTML files including stylesheets or Javascript includes)
+  will not display correctly
+- We only support copying files and not directories, to prevent excessive disk
+  usage copying recursively, and because there is not much use opening a
+  directory whose changes will not be reflected in the original.
+
+> :warning: Everything past this point has not been updated yet
 
 ### Hooking into `xdg-open`
 
 The script creates/modifies two different configuration files, which allows it
 to hook into the Linux `xdg-open` command. These are:
 
-- `~/.wsl-open`: holds the user inputted file path to the user's Windows home
-  folder, in the format `WinHome=/mnt/c/Users/augus`
 - `~/.mailcap`: used by `run-mailcap`, which in turn is called by `xdg-open`.
   Holds entries for different filetypes, as well as the program which should
   open them. Each entry is of the form `application/pdf; wsl-open '%s'`,
