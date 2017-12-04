@@ -109,11 +109,16 @@ while getopts "ha:d:wx" Opt; do
         if grep "export.*BROWSER=.*$Exe" $BashFile >/dev/null; then
           Error "$BashFile already adds $Exe to BROWSER, check it for problems or restart your Bash"
         else
-          {
-            echo;
-            echo "# Adding $Exe as a browser for Bash for Windows";
-            echo "export BROWSER=\$BROWSER:$Exe";
-          } >>$BashFile
+          echo "
+          # Adding $Exe as a browser for Bash for Windows
+          if [[ \$(uname -r) == *Microsoft ]]; then
+            if [[ -z $BROWSER ]]; then
+              export BROWSER=$Exe
+            else
+              export BROWSER=$BROWSER:$Exe
+            fi
+          fi
+          " >>$BashFile
         fi
       fi
       ;;
@@ -168,7 +173,7 @@ if [[ ! -z $File ]]; then
     # Convert file path to Windows path, using these two simple rules:
     # - /mnt/[a-z] -> [A-Z]:\\
     # - / -> \
-    FileWin=$(echo "$FilePath" | cut -d "/" -f 3-)
+      FileWin=$(echo "$FilePath" | cut -d "/" -f 3-)
     FileWin="$(tr '[:lower:]' '[:upper:]' <<< "${FileWin:0:1}"):/${FileWin:1}"
     FileWin="$(tr "/" "\\" <<< "$FileWin")"
   elif [[ $File == *://* ]]; then
