@@ -8,9 +8,11 @@
   },
   "scripts": {
     "test": "for test in lint unit; do npm run $test; done",
+    "preinstall": "npm run man",
     "lint": "for lint in lint:md lint:sh; do npm run $lint; done",
     "lint:sh": "shellcheck *.sh",
     "lint:md": "markdownlint --config .markdownlint.json *.md",
+    "man": "marked-man --version \"wsl-open $npm_package_version\" --manual \"wsl-open manual\" --section 1 MANUAL.md > wsl-open.1",
     "unit": "bats *.bats"
   },
   "repository": {
@@ -33,10 +35,12 @@
     "bats-assert": "git+https://github.com/ztombol/bats-assert.git",
     "bats-support": "git+https://github.com/ztombol/bats-support.git",
     "markdownlint-cli": "^0.5.0",
+    "marked-man": "^0.2.1",
     "shellcheck": "0.0.8"
   },
   "preferGlobal": true,
   "bin": {
     "wsl-open": "wsl-open.sh"
-  }
+  },
+  "man": "wsl-open.1"
 }
