@@ -12,7 +12,7 @@
 # Variables
 Exe=$(basename "$0" .sh)
 OpenExe=${OpenExe:-"powershell.exe Start"}
-Disks=${Disks:-/mnt/c}
+WslDisks=${WslDisks:-/mnt/c}
 EnableWslCheck=${EnableWslCheck:-true}
 DryRun=false
 DefaultsFile=${DefaultsFile:-~/.mailcap}
@@ -62,14 +62,14 @@ WinPathToLinux() {
   # shellcheck disable=SC2018,SC2019
   Path=$(tr 'A-Z' 'a-z' <<< "${Path:0:1}")${Path:2}
   # c/folder/path -> /mnt/c/folder/path
-  Path=$Disks$Path
+  Path=$WslDisks$Path
   echo "$Path"
 }
 LinuxPathToWin() {
   Path=$*
   # If path not under $Disks, can't convert
-  [[ $Path != $Disks* ]] && exit
-  DisksLevel=${Disks//[^\/]}
+  [[ $Path != $WslDisks* ]] && exit
+  DisksLevel=${WslDisks//[^\/]}
   DisksLevel=${#DisksLevel}
   DisksLevel=$(( DisksLevel + 1 ))
   # /mnt/c/folder/path -> c/folder/path
@@ -145,7 +145,7 @@ if [[ ! -z $File ]]; then
     FilePath="$(readlink -f "$File")"
 
     # shellcheck disable=SC2053
-    if [[ $FilePath != $Disks* ]]; then
+    if [[ $FilePath != $WslDisks* ]]; then
       # File or directory is not on a Windows accessible disk
       # If it is a directory, then we can't do anything, quit
       [[ ! -f $FilePath ]] && Error "Directory not in Windows partition: $FilePath"

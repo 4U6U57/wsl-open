@@ -4,37 +4,32 @@ load "node_modules/bats-support/load"
 load "node_modules/bats-assert/load"
 
 TestFolder="$BATS_TEST_DIRNAME/test_folder"
-TestDisk="$BATS_TEST_DIRNAME/test_disk"
+TestDisks="$BATS_TEST_DIRNAME/test_mnt"
 Source="$BATS_TEST_DIRNAME/wsl-open.sh"
+TestSource() {
+  if assert_wsl; then
+    EnableWslCheck=false
+  fi
+  WslDisks=$TestDisks
+  $Source
+}
 Exe=$(basename $Source .sh)
 ConfigFile=~/.$Exe
-AllDisk="/mnt/*"
-DetectWsl=$([[ $(uname -r) == *Microsoft ]])
 
 setup() {
-  for TempFolder in $TestFolder $TestDisk; do
-    if [ -e $TempFolder ]; then
-      rm -rf $TempFolder
-    fi
-    refute [ -e $TempFolder ]
-  done
-  mkdir $TestFolder
+  create_test_env
   cd $TestFolder
-  # Any test that is after the environment is setup (created virtual WinDisk)
-  # should assert that we have a valid WinDisk to work on
-  if [[ $BATS_TEST_NAME != env:* ]]; then
-    assert_valid_windisk
-  fi
 }
 
 @test "env: test environment" {
 assert_equal $(pwd) $TestFolder
+assert [ -d $TestDisks ]
 }
 
-@test "env: not on WSL" {
-if $DetectWsl; then
+@test "env: not on WSL error" {
+if assert_wsl; then
   # We are on a real WSL
-  skip "Cannot test non-WSL machine behavior on WSL machine"
+  skip "Cannot test non-WSL behavior on WSL machine"
 else
   # Test functionality if ran on non WSL machine
   run $Source
@@ -43,44 +38,17 @@ else
 fi
 }
 
-@test "env: emulate WinDisk" {
-# Load configuration, if exists
-if [ -e $ConfigFile ]; then
-  source $ConfigFile
-fi
-# If WinDisk is not set, we need to find it or emulate it
-if [ -z $WinDisk ]; then
-  # If we're on a real WSL machine, need to find it
-  if $DetectWsl; then
-    for Disk in $AllDisk; do
-      # If we find a Windows folder, this is the disk with the OS
-      [ -e $Disk/Windows/System32 ] && WinDisk=$Disk && break
-    done
-  else
-    # We're on a non-WSL machine, emulate and create
-    WinDisk=$TestDisk
-    create_valid_windisk
-  fi
-  # Save WinDisk to config file
-  echo "WinDisk=$WinDisk" >>"$ConfigFile"
-fi
-refute [ -z $WinDisk ]
-assert [ -d $WinDisk ]
-}
-
 @test "env: emulate WSL" {
-if $DetectWsl; then
-  skip "Cannot test overriding WSL protection on WSL machine"
+if assert_wsl; then
+  skip "Cannot emulate WSL on WSL machine"
 else
-  echo "EnableWslCheck=false" >>$ConfigFile
-  source $ConfigFile
-  run $Source
+  run $TestSource
   assert_success
 fi
 }
 
 @test "basic: no input" {
-run $Source
+run $TestSource
 assert_success
 assert_output ""
 }
@@ -91,21 +59,38 @@ teardown() {
 }
 
 ## Helper functions
+assert_wsl() {
+  [[ $(uname -r) == *Microsoft ]]
+}
+refute_wsl() {
+  ! assert_wsl
+}
+create_test_env() {
+  # Create test folder and test disk
+  for TempFolder in $TestFolder $TestDisks; do
+    if [[ -e $TempFolder ]]; then
+      rm -rf $TempFolder
+    fi
+    refute [ -e $TempFolder ]
+    mkdir $TempFolder
+    assert [ -d $TempFolder ]
+  done
+  # export WslDisks=$TestDisks
+  # export EnableWslCheck=false
+}
 create_valid_windisk() {
-  mkdir $WinDisk
-  mkdir $WinDisk/Windows
-  mkdir $WinDisk/Windows/System32
-  mkdir $WinDisk/Users
-  mkdir $WinDisk/Users/TestUser
+  Disk="$*"
+  mkdir $Disk
+  mkdir $Disk/Windows
+  mkdir $Disk/Windows/System32
+  mkdir $Disk/Users
+  mkdir $Disk/Users/$USER
 }
 assert_valid_windisk() {
-  if [ -e $ConfigFile ]; then
-    source $ConfigFile
-  fi
-  refute [ -z $WinDisk ]
-  if [ ! -d $WinDisk ]; then
-    create_valid_windisk
-  fi
-  assert [ -d $WinDisk ]
-  assert [ -d $WinDisk/Windows/System32 ]
+  Disk="$*"
+  assert [ -d $Disk ]
+  assert [ -d $Disk/Windows ]
+  assert [ -d $Disk/Windows/System32 ]
+  assert [ -d $Disk/Users ]
+  assert [ -d $Disk/Users/$USER ]
 }
