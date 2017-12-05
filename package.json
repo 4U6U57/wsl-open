@@ -1,6 +1,6 @@
 {
   "name": "wsl-open",
-  "version": "1.0.3",
+  "version": "1.0.8",
   "description": "Utility for opening files from the Windows Subsystem for Linux (WSL) in native Windows applications",
   "main": "wsl-open.sh",
   "directories": {
@@ -8,9 +8,11 @@
   },
   "scripts": {
     "test": "for test in lint unit; do npm run $test; done",
+    "version": "npm run man && git add -A :/",
     "lint": "for lint in lint:md lint:sh; do npm run $lint; done",
     "lint:sh": "shellcheck *.sh",
     "lint:md": "markdownlint *.md",
+    "man": "marked-man --version \"wsl-open $npm_package_version\" --manual \"wsl-open manual\" --section 1 MANUAL.md > wsl-open.1",
     "unit": "bats *.bats"
   },
   "repository": {
@@ -33,10 +35,12 @@
     "bats-assert": "git+https://github.com/ztombol/bats-assert.git",
     "bats-support": "git+https://github.com/ztombol/bats-support.git",
     "markdownlint-cli": "^0.5.0",
+    "marked-man": "^0.2.1",
     "shellcheck": "0.0.8"
   },
   "preferGlobal": true,
   "bin": {
     "wsl-open": "wsl-open.sh"
-  }
+  },
+  "man": "wsl-open.1"
 }
