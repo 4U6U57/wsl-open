@@ -164,6 +164,9 @@ create_test_env() {
   for TempDir in "$TestDir" "$TestDisks"; do
     safe_mkdir $TempDir
   done
+  if [[ -z $USER ]]; then
+    export USER="avalera"
+  fi
 }
 create_valid_windisk() {
   Disk="$TestDisks/$*"
