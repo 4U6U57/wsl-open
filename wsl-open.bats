@@ -12,8 +12,9 @@ TestSource() {
   if refute_wsl; then
     export EnableWslCheck=false
   fi
+  export TempDir=$TempDir
   export WslDisks=$TestDisks
-  export OpenExe="echo"
+  export OpenExe="echo Open: "
   Source $*
 }
 Exe=$(basename $Source .sh)
@@ -44,6 +45,7 @@ else
   # Test functionality if ran on non WSL machine
   run Source
   assert_failure
+  assert_error
   assert_output --partial "Could not detect WSL"
 fi
 }
@@ -53,6 +55,8 @@ if assert_wsl; then
   skip "Cannot emulate WSL on WSL machine"
 else
   run TestSource
+  refute_error
+  refute_warning
   assert_success
 fi
 }
@@ -60,22 +64,57 @@ fi
 @test "basic: no input" {
 run TestSource
 assert_success
+refute_error
+refute_warning
 assert_output ""
 }
 
 @test "basic: missing file" {
 run TestSource noexist
 assert_failure
-assert_output --partial "ERROR"
+assert_error
 assert_output --partial "does not exist"
 }
 
 @test "basic: file on Windows" {
-TestFile=$UserDir/test.txt
-touch $TestFile
-run TestSource $TestFile
+File="$UserDir/test.txt"
+touch $File
+run TestSource $File
 assert_success
-assert_output "\"$UserFolder\\test.txt\""
+refute_error
+refute_warning
+assert_openfile "$UserFolder\\$(basename $File)"
+}
+
+@test "basic: directory on Windows" {
+Dir="$UserDir/test"
+mkdir $Dir
+run TestSource $Dir
+assert_success
+refute_error
+refute_warning
+assert_openfile "$UserFolder\\$(basename $Dir)"
+}
+
+@test "basic: file on Linux" {
+File="$TestDir/test.txt"
+touch $File
+run TestSource $File
+assert_success
+assert_warning
+refute_error
+assert_openfile "$ExecTempFolder\\$(basename $File)"
+assert [ -e $ExecTempDir/$(basename $File) ]
+}
+
+@test "basic: directory on Linux failure" {
+Dir="$TestDir/test"
+mkdir $Dir
+run TestSource $Dir
+assert_failure
+assert_error
+assert_output --partial "Directory not in Windows partition"
+refute_warning
 }
 
 teardown() {
@@ -84,12 +123,33 @@ teardown() {
 }
 
 ## Helper functions
+
+# Environment checkers
 assert_wsl() {
   [[ $(uname -r) == *Microsoft ]]
 }
 refute_wsl() {
   ! assert_wsl
 }
+
+# Output checkers
+assert_error() {
+  assert_output --partial "ERROR: "
+}
+assert_warning() {
+  assert_output --partial "WARNING: "
+}
+refute_error() {
+  refute_output --partial "ERROR: "
+}
+refute_warning() {
+  refute_output --partial "WARNING: "
+}
+assert_openfile() {
+  assert_output --partial "Open: \"$*\""
+}
+
+# Utilities
 safe_mkdir() {
   Dir="$*"
   if [[ -e $Dir ]]; then
@@ -110,8 +170,10 @@ create_valid_windisk() {
   export WinDisk=$Disk
   export UserDir=$Disk/Users/$USER
   export TempDir=$UserDir/AppData/Temp
+  export ExecTempDir=$TempDir/wsl-open
   export UserFolder=$(tr 'a-z' 'A-Z' <<< $*):\\\\Users\\$USER
   export TempFolder=$UserFolder\\AppData\\Temp
+  export ExecTempFolder=$TempFolder\\wsl-open
   for Dir in $Disk $Disk/Windows $Disk/Windows/System32 $Disk/Users \
     $Disk/Users/$USER $UserDir/AppData $TempDir; do
     safe_mkdir $Dir

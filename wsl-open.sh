@@ -152,8 +152,8 @@ if [[ ! -z $File ]]; then
       if [[ -z $TempDir ]]; then
         TempFolder=$(cmd.exe /C echo %TEMP%)
         TempDir=$(WinPathToLinux "$TempFolder")
-        ExeTempDir="$TempDir/$Exe"
       fi
+      ExeTempDir="$TempDir/$Exe"
       [[ ! -e $ExeTempDir ]] && Warning "Creating temp dir for $Exe to use: $ExeTempDir" && mkdir --parents "$ExeTempDir"
       FilePath="$ExeTempDir/$(basename "$FilePath")"
       echo -n "Copying "
