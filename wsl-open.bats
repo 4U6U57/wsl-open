@@ -9,7 +9,7 @@ Source() {
   $BATS_TEST_DIRNAME/wsl-open.sh $@
 }
 TestSource() {
-  if assert_wsl; then
+  if refute_wsl; then
     export EnableWslCheck=false
   fi
   export WslDisks=$TestDisks
