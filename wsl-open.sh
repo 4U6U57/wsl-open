@@ -149,13 +149,13 @@ if [[ ! -z $File ]]; then
       # If it's a file, we copy it to the user's temp folder before opening
       Warning "File not in Windows partition: $FilePath"
       # If we do not have a temp folder assigned, find one using Windows
-      if [[ -z $TempFolder ]]; then
-        TempWin=$(cmd.exe /C echo %TEMP%)
-        TempDir=$(WinPathToLinux "$TempWin")
-        TempFolder="$TempDir/$Exe"
+      if [[ -z $TempDir ]]; then
+        TempFolder=$(cmd.exe /C echo %TEMP%)
+        TempDir=$(WinPathToLinux "$TempFolder")
+        ExeTempDir="$TempDir/$Exe"
       fi
-      [[ ! -e $TempFolder ]] && Warning "Creating temp folder for $Exe to use: $TempFolder" && mkdir --parents "$TempFolder"
-      FilePath="$TempFolder/$(basename "$FilePath")"
+      [[ ! -e $ExeTempDir ]] && Warning "Creating temp dir for $Exe to use: $ExeTempDir" && mkdir --parents "$ExeTempDir"
+      FilePath="$ExeTempDir/$(basename "$FilePath")"
       echo -n "Copying "
       cp -v "$File" "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
     fi

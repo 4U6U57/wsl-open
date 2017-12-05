@@ -3,7 +3,7 @@
 load "node_modules/bats-support/load"
 load "node_modules/bats-assert/load"
 
-TestFolder="$BATS_TEST_DIRNAME/test_folder"
+TestDir="$BATS_TEST_DIRNAME/test_folder"
 TestDisks="$BATS_TEST_DIRNAME/test_mnt"
 Source() {
   $BATS_TEST_DIRNAME/wsl-open.sh $@
@@ -21,7 +21,7 @@ ConfigFile=~/.$Exe
 
 setup() {
   create_test_env
-  cd $TestFolder
+  cd $TestDir
   if grep -q "env:" <(echo $BATS_TEST_NAME) &>/dev/null; then
     # Env tests, do nothing
     true
@@ -32,7 +32,7 @@ setup() {
 }
 
 @test "env: test environment" {
-assert_equal $(pwd) $TestFolder
+assert_equal $(pwd) $TestDir
 assert [ -d $TestDisks ]
 }
 
@@ -71,16 +71,16 @@ assert_output --partial "does not exist"
 }
 
 @test "basic: file on Windows" {
-TestFile=$TestDisks/c/test.txt
+TestFile=$UserDir/test.txt
 touch $TestFile
 run TestSource $TestFile
 assert_success
-assert_output '"C:\\test.txt"'
+assert_output "\"$UserFolder\\test.txt\""
 }
 
 teardown() {
   cd ..
-  rm -rf $TestFolder $TestDisks
+  rm -rf $TestDir $TestDisks
 }
 
 ## Helper functions
@@ -90,35 +90,37 @@ assert_wsl() {
 refute_wsl() {
   ! assert_wsl
 }
+safe_mkdir() {
+  Dir="$*"
+  if [[ -e $Dir ]]; then
+    rm -rf $Dir
+  fi
+  refute [ -e $Dir ]
+  mkdir $Dir
+  assert [ -d $Dir ]
+}
 create_test_env() {
   # Create test folder and test disk
-  for TempFolder in "$TestFolder" "$TestDisks"; do
-    if [ -e $TempFolder ]; then
-      rm -rf $TempFolder
-    fi
-    refute [ -e $TempFolder ]
-    mkdir $TempFolder
-    assert [ -d $TempFolder ]
+  for TempDir in "$TestDir" "$TestDisks"; do
+    safe_mkdir $TempDir
   done
 }
 create_valid_windisk() {
   Disk="$TestDisks/$*"
-  export UserDir=$Disk/Users/$USER
   export WinDisk=$Disk
-  export TempFolder=$UserDir/AppData/Temp
-  for Folder in $Disk $Disk/Windows $Disk/Windows/System32 $Disk/Users \
-    $Disk/Users/$USER $UserDir/AppData $TempFolder; do
-    if [ -e $Folder ]; then
-      rm -rf $Folder
-    fi
-    mkdir $Folder
-    assert [ -d $Folder ]
+  export UserDir=$Disk/Users/$USER
+  export TempDir=$UserDir/AppData/Temp
+  export UserFolder=$(tr 'a-z' 'A-Z' <<< $*):\\\\Users\\$USER
+  export TempFolder=$UserFolder\\AppData\\Temp
+  for Dir in $Disk $Disk/Windows $Disk/Windows/System32 $Disk/Users \
+    $Disk/Users/$USER $UserDir/AppData $TempDir; do
+    safe_mkdir $Dir
   done
 }
 assert_valid_windisk() {
   Disk="$WinDisk"
   assert [ -d $UserDir ]
   assert_equal $UserDir $Disk/Users/$USER
-  assert [ -d $TempFolder ]
-  assert_equal $TempFolder $UserDir/AppData/Temp
+  assert [ -d $TempDir ]
+  assert_equal $TempDir $UserDir/AppData/Temp
 }
