@@ -8,7 +8,6 @@
   },
   "scripts": {
     "test": "for test in lint unit; do npm run $test; done",
-    "preinstall": "npm run man",
     "lint": "for lint in lint:md lint:sh; do npm run $lint; done",
     "lint:sh": "shellcheck *.sh",
     "lint:md": "markdownlint --config .markdownlint.json *.md",
