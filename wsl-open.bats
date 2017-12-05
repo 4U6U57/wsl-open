@@ -103,26 +103,22 @@ create_test_env() {
 }
 create_valid_windisk() {
   Disk="$TestDisks/$*"
-  mkdir $Disk
-  mkdir $Disk/Windows
-  mkdir $Disk/Windows/System32
-  mkdir $Disk/Users
-  mkdir $Disk/Users/$USER
   export UserDir=$Disk/Users/$USER
-  mkdir $UserDir/AppData
-  mkdir $UserDir/AppData/Temp
   export WinDisk=$Disk
   export TempFolder=$UserDir/AppData/Temp
+  for Folder in $Disk $Disk/Windows $Disk/Windows/System32 $Disk/Users \
+    $Disk/Users/$USER $UserDir/AppData $TempFolder; do
+    if [ -e $Folder ]; then
+      rm -rf $Folder
+    fi
+    mkdir $Folder
+    assert [ -d $Folder ]
+  done
 }
 assert_valid_windisk() {
   Disk="$WinDisk"
-  assert [ -d $Disk ]
-  assert [ -d $Disk/Windows ]
-  assert [ -d $Disk/Windows/System32 ]
-  assert [ -d $Disk/Users ]
-  assert_equal $UserDir $Disk/Users/$USER
   assert [ -d $UserDir ]
-  assert [ -d $UserDir/AppData ]
-  assert_equal $TempFolder $UserDir/AppData/Temp
+  assert_equal $UserDir $Disk/Users/$USER
   assert [ -d $TempFolder ]
+  assert_equal $TempFolder $UserDir/AppData/Temp
 }
