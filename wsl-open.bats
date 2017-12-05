@@ -5,13 +5,16 @@ load "node_modules/bats-assert/load"
 
 TestFolder="$BATS_TEST_DIRNAME/test_folder"
 TestDisks="$BATS_TEST_DIRNAME/test_mnt"
-Source="$BATS_TEST_DIRNAME/wsl-open.sh"
+Source() {
+  $BATS_TEST_DIRNAME/wsl-open.sh $@
+}
 TestSource() {
   if assert_wsl; then
-    EnableWslCheck=false
+    export EnableWslCheck=false
   fi
-  WslDisks=$TestDisks
-  $Source
+  export WslDisks=$TestDisks
+  export OpenExe="echo"
+  Source $*
 }
 Exe=$(basename $Source .sh)
 ConfigFile=~/.$Exe
@@ -19,6 +22,13 @@ ConfigFile=~/.$Exe
 setup() {
   create_test_env
   cd $TestFolder
+  if grep -q "env:" <(echo $BATS_TEST_NAME) &>/dev/null; then
+    # Env tests, do nothing
+    true
+  else
+    create_valid_windisk c
+    assert_valid_windisk
+  fi
 }
 
 @test "env: test environment" {
@@ -32,7 +42,7 @@ if assert_wsl; then
   skip "Cannot test non-WSL behavior on WSL machine"
 else
   # Test functionality if ran on non WSL machine
-  run $Source
+  run Source
   assert_failure
   assert_output --partial "Could not detect WSL"
 fi
@@ -42,20 +52,35 @@ fi
 if assert_wsl; then
   skip "Cannot emulate WSL on WSL machine"
 else
-  run $TestSource
+  run TestSource
   assert_success
 fi
 }
 
 @test "basic: no input" {
-run $TestSource
+run TestSource
 assert_success
 assert_output ""
 }
 
+@test "basic: missing file" {
+run TestSource noexist
+assert_failure
+assert_output --partial "ERROR"
+assert_output --partial "does not exist"
+}
+
+@test "basic: file on Windows" {
+TestFile=$TestDisks/c/test.txt
+touch $TestFile
+run TestSource $TestFile
+assert_success
+assert_output '"C:\\test.txt"'
+}
+
 teardown() {
   cd ..
-  rm -rf $TestFolder $TestDisk
+  rm -rf $TestFolder $TestDisks
 }
 
 ## Helper functions
@@ -79,18 +104,27 @@ create_test_env() {
   # export EnableWslCheck=false
 }
 create_valid_windisk() {
-  Disk="$*"
+  Disk="$TestDisks/$*"
   mkdir $Disk
   mkdir $Disk/Windows
   mkdir $Disk/Windows/System32
   mkdir $Disk/Users
   mkdir $Disk/Users/$USER
+  export UserDir=$Disk/Users/$USER
+  mkdir $UserDir/AppData
+  mkdir $UserDir/AppData/Temp
+  export WinDisk=$Disk
+  export TempFolder=$UserDir/AppData/Temp
 }
 assert_valid_windisk() {
-  Disk="$*"
+  Disk="$WinDisk"
   assert [ -d $Disk ]
   assert [ -d $Disk/Windows ]
   assert [ -d $Disk/Windows/System32 ]
   assert [ -d $Disk/Users ]
-  assert [ -d $Disk/Users/$USER ]
+  assert_equal $UserDir $Disk/Users/$USER
+  assert [ -d $UserDir ]
+  assert [ -d $UserDir/AppData ]
+  assert_equal $TempFolder $UserDir/AppData/Temp
+  assert [ -d $TempFolder ]
 }
