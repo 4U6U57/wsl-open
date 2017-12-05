@@ -92,16 +92,14 @@ refute_wsl() {
 }
 create_test_env() {
   # Create test folder and test disk
-  for TempFolder in $TestFolder $TestDisks; do
-    if [[ -e $TempFolder ]]; then
+  for TempFolder in "$TestFolder" "$TestDisks"; do
+    if [ -e $TempFolder ]; then
       rm -rf $TempFolder
     fi
     refute [ -e $TempFolder ]
     mkdir $TempFolder
     assert [ -d $TempFolder ]
   done
-  # export WslDisks=$TestDisks
-  # export EnableWslCheck=false
 }
 create_valid_windisk() {
   Disk="$TestDisks/$*"
