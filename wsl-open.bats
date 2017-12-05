@@ -12,9 +12,9 @@ TestSource() {
   if refute_wsl; then
     export EnableWslCheck=false
   fi
-  export TempDir=$TempDir
+  export WslTempDir=$WslTempDir
   export WslDisks=$TestDisks
-  export OpenExe="echo Open: "
+  export WslOpenExe="echo Open:"
   Source $*
 }
 Exe=$(basename $Source .sh)
@@ -165,20 +165,20 @@ create_test_env() {
     safe_mkdir $TempDir
   done
   if [[ -z $USER ]]; then
-    export USER="avalera"
+    export USER="wsl-tester"
   fi
 }
 create_valid_windisk() {
   Disk="$TestDisks/$*"
   export WinDisk=$Disk
   export UserDir=$Disk/Users/$USER
-  export TempDir=$UserDir/AppData/Temp
-  export ExecTempDir=$TempDir/wsl-open
+  export WslTempDir=$UserDir/AppData/Temp
+  export ExecTempDir=$WslTempDir/wsl-open
   export UserFolder=$(tr 'a-z' 'A-Z' <<< $*):\\\\Users\\$USER
   export TempFolder=$UserFolder\\AppData\\Temp
   export ExecTempFolder=$TempFolder\\wsl-open
   for Dir in $Disk $Disk/Windows $Disk/Windows/System32 $Disk/Users \
-    $Disk/Users/$USER $UserDir/AppData $TempDir; do
+    $Disk/Users/$USER $UserDir/AppData $WslTempDir; do
     safe_mkdir $Dir
   done
 }
@@ -186,6 +186,6 @@ assert_valid_windisk() {
   Disk="$WinDisk"
   assert [ -d $UserDir ]
   assert_equal $UserDir $Disk/Users/$USER
-  assert [ -d $TempDir ]
-  assert_equal $TempDir $UserDir/AppData/Temp
+  assert [ -d $WslTempDir ]
+  assert_equal $WslTempDir $UserDir/AppData/Temp
 }

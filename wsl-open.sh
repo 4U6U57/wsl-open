@@ -11,10 +11,10 @@
 
 # Variables
 Exe=$(basename "$0" .sh)
-OpenExe=${OpenExe:-"powershell.exe Start"}
+WslOpenExe=${WslOpenExe:-"powershell.exe Start"}
 WslDisks=${WslDisks:-/mnt}
 EnableWslCheck=${EnableWslCheck:-true}
-DryRun=false
+DryRun=${DryRun:-false}
 DefaultsFile=${DefaultsFile:-~/.mailcap}
 BashFile=${BashFile:-~/.bashrc}
 
@@ -35,7 +35,7 @@ $Exe \\- Windows Subsystem for Linux opening utility
 .SH SYNOPSIS
 $Exe [-w] [ -a | -d ] FILE
 .SH DESCRIPTION
-$Exe is a shell script that uses Bash for Windows' \`$OpenExe\` command to open files with Windows applications.
+$Exe is a shell script that uses Bash for Windows' \`$WslOpenExe\` command to open files with Windows applications.
 .SH OPTIONS
 .IP -h
 displays this help page
@@ -78,6 +78,11 @@ LinuxPathToWin() {
   echo "$Path"
 }
 
+# Printer for dry run function
+DryRunner() {
+  echo "$Exe: RUN: $*"
+}
+
 # Check that we're on Windows Subsystem for Linux
 # shellcheck disable=SC2154
 if $EnableWslCheck; then
@@ -96,8 +101,13 @@ while getopts "ha:d:wx" Opt; do
       Type=$(xdg-mime query filetype "$File")
       TypeSafe="${Type//\//\\/}"
       echo "Associating type $Type with $Exe"
-      sed -i "/$TypeSafe/d" "$DefaultsFile"
-      echo "$Type; $Exe '%s'" >>"$DefaultsFile"
+      if ! $DryRun; then
+        sed -i "/$TypeSafe/d" "$DefaultsFile"
+        echo "$Type; $Exe '%s'" >>"$DefaultsFile"
+      else
+        DryRunner "sed -i \"/$TypeSafe/d\" \"$DefaultsFile\""
+        DryRunner "echo \"$Type; $Exe '%s'\" >>\"$DefaultsFile\""
+      fi
       ;;
     (d)
       File=$OPTARG
@@ -105,7 +115,11 @@ while getopts "ha:d:wx" Opt; do
       Type=$(xdg-mime query filetype "$File")
       TypeSafe="${Type//\//\\/}"
       echo "Disassociating type $Type with $Exe"
-      sed -i "/$TypeSafe.*open-window/d" "$DefaultsFile"
+      if ! $DryRun; then
+        sed -i "/$TypeSafe.*open-window/d" "$DefaultsFile"
+      else
+        DryRunner "sed -i \"/$TypeSafe.*open-window/d\" \"$DefaultsFile\""
+      fi
       ;;
     (w)
       if echo "$BROWSER" | grep "$Exe" >/dev/null; then
@@ -149,15 +163,19 @@ if [[ ! -z $File ]]; then
       # If it's a file, we copy it to the user's temp folder before opening
       Warning "File not in Windows partition: $FilePath"
       # If we do not have a temp folder assigned, find one using Windows
-      if [[ -z $TempDir ]]; then
+      if [[ -z $WslTempDir ]]; then
         TempFolder=$(cmd.exe /C echo %TEMP%)
-        TempDir=$(WinPathToLinux "$TempFolder")
+        WslTempDir=$(WinPathToLinux "$TempFolder")
       fi
-      ExeTempDir="$TempDir/$Exe"
+      ExeTempDir="$WslTempDir/$Exe"
       [[ ! -e $ExeTempDir ]] && Warning "Creating temp dir for $Exe to use: $ExeTempDir" && mkdir --parents "$ExeTempDir"
       FilePath="$ExeTempDir/$(basename "$FilePath")"
-      echo -n "Copying "
-      cp -v "$File" "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
+      if ! $DryRun; then
+        echo -n "Copying "
+        cp -v "$File" "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
+      else
+        DryRunner "cp \"$File\" \"$FilePath\""
+      fi
     fi
 
     FileWin=$(LinuxPathToWin "$FilePath")
@@ -170,8 +188,8 @@ if [[ ! -z $File ]]; then
 
   # Open the file with Windows
   if ! $DryRun; then
-    $OpenExe "\"$FileWin\""
+    $WslOpenExe "\"$FileWin\""
   else
-    echo "Run this to open file: $OpenExe \"$FileWin\""
+    DryRunner "$WslOpenExe \"$FileWin\""
   fi
 fi
