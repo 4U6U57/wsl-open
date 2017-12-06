@@ -61,6 +61,11 @@ wsl-open -w
 > **Protip**: I like to furthur generalize my scripts by setting `alias
 > open='xdg-open'` on my Linux machines, which make them behave more like macOS
 
+### Full specification
+
+For full details on how the script operates, feel free to check out the
+[manpage][manpage] or [design specification][design]
+
 ## Installation
 
 ### npm
@@ -99,3 +104,5 @@ chmod +x ~/bin/wsl-open
 
 [wsl]: https://msdn.microsoft.com/en-us/commandline/wsl/about
 [npm]: https://npmjs.com
+[manpage]: MANUAL.md
+[design]: DESIGN.md
