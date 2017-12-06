@@ -9,6 +9,10 @@
 # @date 2017-11-23
 #
 
+# Global
+# shellcheck disable=SC1117
+# This is for the explicit manpage
+
 # Variables
 Exe=$(basename "$0" .sh)
 OpenExe=${OpenExe:-"powershell.exe Start"}
@@ -28,9 +32,9 @@ Warning() {
 
 # Usage message, ran on help (-h)
 Usage="
-.\" IMPORT MANUAL.md
-.TH "WSL\-OPEN" "1" "December 2017" "wsl-open 1.0.8" "wsl-open manual"
-.SH "NAME"
+.\" IMPORT wsl-open.1
+.TH \"WSL\-OPEN\" \"1\" \"December 2017\" \"wsl-open 1.0.8\" \"wsl-open manual\"
+.SH \"NAME\"
 \fBwsl-open\fR
 .SH SYNOPSIS
 .P
@@ -61,7 +65,7 @@ associates this script with xdg\-open for links (\fBhttp://\fP)
 dry run, does not open file, just echos command used to do it\.
 Useful for testing\.
 
-.\" END IMPORT MANUAL.md
+.\" END IMPORT wsl-open.1
 "
 
 # Path conversion functions
