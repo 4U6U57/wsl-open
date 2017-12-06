@@ -69,6 +69,14 @@ refute_warning
 assert_output ""
 }
 
+@test "basic: help" {
+run TestSource -h
+assert_success
+refute_error
+refute_warning
+assert_output --partial "wsl-open"
+}
+
 @test "basic: missing file" {
 run TestSource noexist
 assert_failure
@@ -104,6 +112,7 @@ assert_success
 assert_warning
 refute_error
 assert_openfile "$ExecTempFolder\\$(basename $File)"
+assert [ -d $ExecTempDir ]
 assert [ -e $ExecTempDir/$(basename $File) ]
 }
 
