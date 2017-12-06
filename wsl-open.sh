@@ -9,6 +9,10 @@
 # @date 2017-11-23
 #
 
+# Global
+# shellcheck disable=SC1117
+# This is for the explicit manpage
+
 # Variables
 Exe=$(basename "$0" .sh)
 WslOpenExe=${WslOpenExe:-"powershell.exe Start"}
@@ -29,24 +33,40 @@ Warning() {
 
 # Usage message, ran on help (-h)
 Usage="
-.TH man 1 \"$(date)\" \"1.0\" \"$Exe man page\"
-.SH NAME
-$Exe \\- Windows Subsystem for Linux opening utility
+.\" IMPORT wsl-open.1
+.TH \"WSL\-OPEN\" \"1\" \"December 2017\" \"wsl-open 1.0.8\" \"wsl-open manual\"
+.SH \"NAME\"
+\fBwsl-open\fR
 .SH SYNOPSIS
-$Exe [-w] [ -a | -d ] FILE
+.P
+.RS 2
+.nf
+wsl\-open [OPTIONS] { FILE | DIRECTORY | URL }
+.fi
+.RE
 .SH DESCRIPTION
-$Exe is a shell script that uses Bash for Windows' \`$WslOpenExe\` command to open files with Windows applications.
+.P
+wsl\-open is a shell script that uses Bash for Windows' \fBpowershell\.exe Start\fP
+command to open files with Windows applications\.
 .SH OPTIONS
-.IP -h
+.P
+\fB\-h\fP
 displays this help page
-.IP -a
-associates this script with xdg-open for files like this
-.IP -d
-disassociates this script with xdg-open for files like this
-.IP -w
-associates this script with xdg-open for links (http://)
-.IP -x
-dry run, does not open file, just echos command used to do it. Useful for testing.
+.P
+\fB\-a\fP
+associates this script with xdg\-open for files like this
+.P
+\fB\-d\fP
+disassociates this script with xdg\-open for files like this
+.P
+\fB\-w\fP
+associates this script with xdg\-open for links (\fBhttp://\fP)
+.P
+\fB\-x\fP
+dry run, does not open file, just echos command used to do it\.
+Useful for testing\.
+
+.\" END IMPORT wsl-open.1
 "
 
 # Path conversion functions

@@ -1,6 +1,6 @@
 {
   "name": "wsl-open",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Utility for opening files from the Windows Subsystem for Linux (WSL) in native Windows applications",
   "main": "wsl-open.sh",
   "directories": {
@@ -8,11 +8,13 @@
   },
   "scripts": {
     "test": "for test in lint unit; do npm run $test; done",
-    "version": "npm run man && git add -A :/",
+    "version": "npm run man",
     "lint": "for lint in lint:md lint:sh; do npm run $lint; done",
     "lint:sh": "shellcheck *.sh",
-    "lint:md": "markdownlint *.md",
-    "man": "marked-man --version \"wsl-open $npm_package_version\" --manual \"wsl-open manual\" --section 1 MANUAL.md > wsl-open.1",
+    "lint:md": "markdownlint --config .markdownlint.json *.md",
+    "man": "for man in man:gen man:install; do npm run $man; done",
+    "man:gen": "marked-man --version \"wsl-open $npm_package_version\" --manual \"wsl-open manual\" --section 1 MANUAL.md > wsl-open.1",
+    "man:install": "File=wsl-open.1; sed 's/\\\"/\\\\\\\"/g' $File >$File.swp; Begin=\".\\\" IMPORT $File\"; End=\".\\\" END IMPORT $File\"; sed -i \"/$Begin/,/$End/{ /$Begin/{p; r $File.swp\n}; /$End/p; d }\" wsl-open.sh; rm -f $File.swp",
     "unit": "bats *.bats"
   },
   "repository": {
