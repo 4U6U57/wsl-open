@@ -15,9 +15,10 @@
 
 # Variables
 Exe=$(basename "$0" .sh)
-OpenExe=${OpenExe:-"powershell.exe Start"}
+WslOpenExe=${WslOpenExe:-"powershell.exe Start"}
+WslDisks=${WslDisks:-/mnt}
 EnableWslCheck=${EnableWslCheck:-true}
-DryRun=false
+DryRun=${DryRun:-false}
 DefaultsFile=${DefaultsFile:-~/.mailcap}
 BashFile=${BashFile:-~/.bashrc}
 
@@ -33,16 +34,12 @@ Warning() {
 # Usage message, ran on help (-h)
 Usage="
 .\" IMPORT wsl-open.1
-.TH \"WSL\-OPEN\" \"1\" \"December 2017\" \"wsl-open 1.0.8\" \"wsl-open manual\"
+.TH \"WSL\-OPEN\" \"1\" \"December 2017\" \"wsl-open 1.0.9\" \"wsl-open manual\"
 .SH \"NAME\"
 \fBwsl-open\fR
 .SH SYNOPSIS
 .P
-.RS 2
-.nf
-wsl\-open [OPTIONS] { FILE | DIRECTORY | URL }
-.fi
-.RE
+\fBwsl\-open [OPTIONS] { FILE | DIRECTORY | URL }\fP
 .SH DESCRIPTION
 .P
 wsl\-open is a shell script that uses Bash for Windows' \fBpowershell\.exe Start\fP
@@ -64,6 +61,21 @@ associates this script with xdg\-open for links (\fBhttp://\fP)
 \fB\-x\fP
 dry run, does not open file, just echos command used to do it\.
 Useful for testing\.
+.SH EXAMPLES
+.P
+\fBwsl\-open manual\.docx\fP
+.P
+\fBwsl\-open /mnt/c/Users/Test\\ User/Downloads/profile\.png\fP
+.P
+\fBwsl\-open https://gitlab\.com/4U6U57/wsl\-open\fP
+.P
+\fBwsl\-open \-a README\.txt\fP
+.SH AUTHORS
+.P
+\fBAugust Valera\fR @4U6U57 on GitLab/GitHub
+.SH SEE ALSO
+.P
+xdg\-open(1), Project Page \fIhttps://gitlab\.com/4U6U57/wsl\-open\fR
 
 .\" END IMPORT wsl-open.1
 "
@@ -77,21 +89,29 @@ WinPathToLinux() {
   Path=${Path//\\\\/\\}
   # C:\folder\path -> C:/folder/path
   Path=${Path//\\/\/}
-  # C:/folder/path -> /mnt/c/folder/path
+  # C:/folder/path -> c/folder/path
   # shellcheck disable=SC2018,SC2019
-  Path=/mnt/$(tr 'A-Z' 'a-z' <<< "${Path:0:1}")${Path:2}
+  Path=$(tr 'A-Z' 'a-z' <<< "${Path:0:1}")${Path:2}
+  # c/folder/path -> /mnt/c/folder/path
+  Path=$WslDisks/$Path
   echo "$Path"
 }
 LinuxPathToWin() {
   Path=$*
-  [[ $Path != /mnt/* ]] && exit
+  # If path not under $Disks, can't convert
+  [[ $Path != $WslDisks/* ]] && Error "Error converting Linux path to Windows"
   # /mnt/c/folder/path -> c/folder/path
-  Path=$(cut -d "/" -f 3- <<< "$Path")
+  Path=${Path:$((${#WslDisks} + 1))}
   # c/folder/path -> C://folder/path
   Path=$(tr '[:lower:]' '[:upper:]' <<< "${Path:0:1}"):/${Path:1}
   # C://folder/path -> C:\\folder\path
   Path=${Path//\//\\}
   echo "$Path"
+}
+
+# Printer for dry run function
+DryRunner() {
+  echo "$Exe: RUN: $*"
 }
 
 # Check that we're on Windows Subsystem for Linux
@@ -112,8 +132,13 @@ while getopts "ha:d:wx" Opt; do
       Type=$(xdg-mime query filetype "$File")
       TypeSafe="${Type//\//\\/}"
       echo "Associating type $Type with $Exe"
-      sed -i "/$TypeSafe/d" "$DefaultsFile"
-      echo "$Type; $Exe '%s'" >>"$DefaultsFile"
+      if ! $DryRun; then
+        sed -i "/$TypeSafe/d" "$DefaultsFile"
+        echo "$Type; $Exe '%s'" >>"$DefaultsFile"
+      else
+        DryRunner "sed -i \"/$TypeSafe/d\" \"$DefaultsFile\""
+        DryRunner "echo \"$Type; $Exe '%s'\" >>\"$DefaultsFile\""
+      fi
       ;;
     (d)
       File=$OPTARG
@@ -121,7 +146,11 @@ while getopts "ha:d:wx" Opt; do
       Type=$(xdg-mime query filetype "$File")
       TypeSafe="${Type//\//\\/}"
       echo "Disassociating type $Type with $Exe"
-      sed -i "/$TypeSafe.*open-window/d" "$DefaultsFile"
+      if ! $DryRun; then
+        sed -i "/$TypeSafe.*open-window/d" "$DefaultsFile"
+      else
+        DryRunner "sed -i \"/$TypeSafe.*open-window/d\" \"$DefaultsFile\""
+      fi
       ;;
     (w)
       if echo "$BROWSER" | grep "$Exe" >/dev/null; then
@@ -158,22 +187,26 @@ if [[ ! -z $File ]]; then
     FilePath="$(readlink -f "$File")"
 
     # shellcheck disable=SC2053
-    if [[ $FilePath != /mnt/* ]]; then
+    if [[ $FilePath != $WslDisks/* ]]; then
       # File or directory is not on a Windows accessible disk
       # If it is a directory, then we can't do anything, quit
       [[ ! -f $FilePath ]] && Error "Directory not in Windows partition: $FilePath"
       # If it's a file, we copy it to the user's temp folder before opening
       Warning "File not in Windows partition: $FilePath"
       # If we do not have a temp folder assigned, find one using Windows
-      if [[ -z $TempFolder ]]; then
-        TempWin=$(cmd.exe /C echo %TEMP%)
-        TempDir=$(WinPathToLinux "$TempWin")
-        TempFolder="$TempDir/$Exe"
+      if [[ -z $WslTempDir ]]; then
+        TempFolder=$(cmd.exe /C echo %TEMP%)
+        WslTempDir=$(WinPathToLinux "$TempFolder")
       fi
-      [[ ! -e $TempFolder ]] && Warning "Creating temp folder for $Exe to use: $TempFolder" && mkdir --parents "$TempFolder"
-      FilePath="$TempFolder/$(basename "$FilePath")"
-      echo -n "Copying "
-      cp -v "$File" "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
+      ExeTempDir="$WslTempDir/$Exe"
+      [[ ! -e $ExeTempDir ]] && Warning "Creating temp dir for $Exe to use: $ExeTempDir" && mkdir --parents "$ExeTempDir"
+      FilePath="$ExeTempDir/$(basename "$FilePath")"
+      if ! $DryRun; then
+        echo -n "Copying "
+        cp -v "$File" "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
+      else
+        DryRunner "cp \"$File\" \"$FilePath\""
+      fi
     fi
 
     FileWin=$(LinuxPathToWin "$FilePath")
@@ -186,8 +219,8 @@ if [[ ! -z $File ]]; then
 
   # Open the file with Windows
   if ! $DryRun; then
-    $OpenExe "\"$FileWin\""
+    $WslOpenExe "\"$FileWin\""
   else
-    echo "Run this to open file: $OpenExe \"$FileWin\""
+    DryRunner "$WslOpenExe \"$FileWin\""
   fi
 fi

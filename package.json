@@ -11,7 +11,7 @@
     "version": "npm run man",
     "lint": "for lint in lint:md lint:sh; do npm run $lint; done",
     "lint:sh": "shellcheck *.sh",
-    "lint:md": "markdownlint --config .markdownlint.json *.md",
+    "lint:md": "markdownlint *.md",
     "man": "for man in man:gen man:install; do npm run $man; done",
     "man:gen": "marked-man --version \"wsl-open $npm_package_version\" --manual \"wsl-open manual\" --section 1 MANUAL.md > wsl-open.1",
     "man:install": "File=wsl-open.1; sed 's/\\\"/\\\\\\\"/g' $File >$File.swp; Begin=\".\\\" IMPORT $File\"; End=\".\\\" END IMPORT $File\"; sed -i \"/$Begin/,/$End/{ /$Begin/{p; r $File.swp\n}; /$End/p; d }\" wsl-open.sh; rm -f $File.swp",
