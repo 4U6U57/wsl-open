@@ -5,9 +5,11 @@ variables:
 
 before_script:
   - apt-get update -yqq
-  - apt-get install -yqq npm git wget
+  - apt-get install -yqq npm nodejs-legacy git wget
 
 test:
   script:
     - npm install --unsafe-perm=true
-    - npm test
+    - npm run lint:sh
+    - npm run lint:md
+    - npm run unit

@@ -70,6 +70,11 @@ npm repo wsl-open # Same as the previous command
 > **Protip**: I like to furthur generalize my scripts by setting `alias
 > open='xdg-open'` on my Linux machines, which make them behave more like macOS
 
+### Full specification
+
+For full details on how the script operates, feel free to check out the
+[manpage][manpage] or [design specification][design]
+
 ## Installation
 
 ### npm
@@ -100,10 +105,9 @@ echo '[[ -e ~/bin ]] && PATH=$PATH:~/bin' » .bashrc
 
 # Download the script to a file named 'wsl-open'
 curl -o ~/bin/wsl-open https://raw.githubusercontent.com/4U6U57/wsl-open/master/wsl-open.sh
-
-# Mark it as executable
-chmod +x ~/bin/wsl-open
 ```
 
 [wsl]: https://msdn.microsoft.com/en-us/commandline/wsl/about
 [npm]: https://npmjs.com
+[manpage]: MANUAL.md
+[design]: DESIGN.md
