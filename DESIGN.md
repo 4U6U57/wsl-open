@@ -47,8 +47,6 @@ means that there are a couple of caveats in doing so:
   usage copying recursively, and because there is not much use opening a
   directory whose changes will not be reflected in the original.
 
-> :warning: Everything past this point has not been updated yet
-
 ### Hooking into `xdg-open`
 
 The script creates/modifies two different configuration files, which allows it
@@ -64,20 +62,9 @@ to hook into the Linux `xdg-open` command. These are:
 Here are some limitations of the script as it is written currently, which may
 result in unexpected behavior.
 
-- On first run, users will be requested to select their Windows home folder.
-  This cannot be done programatically, as Linux usernames are independent of
-  Windows usernames
-- Any file not in your Windows user home folder will be copied into the
-  `%USERPROFILE%\AppData\Local\Temp\wsl-open` before being opened.
-  - You can also use `wsl-open` to open directories, but we will not allow
-    directories not in the Windows partition (because we don't want to recursive
-    copy all those files over)
 - Some Windows applications will prevent other programs from writing to a file
   while it is open, which will cause the script to fail. This affects reloading
   a file (regardless of whether or not it has been edited), as well as
   attempting to open a different file of with the same name.
-- Only the file specified will be copied if required. This may cause issues when
-  opening files that have dependencies, such as an html file which imports CSS
-  stylesheets or Javascript files.
 
 [wsl]: https://msdn.microsoft.com/en-us/commandline/wsl/about
