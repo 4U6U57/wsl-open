@@ -161,11 +161,16 @@ while getopts "ha:d:wx" Opt; do
         if grep "export.*BROWSER=.*$Exe" "$BashFile" >/dev/null; then
           Error "$BashFile already adds $Exe to BROWSER, check it for problems or restart your Bash"
         else
-          {
-            echo;
-            echo "# Adding $Exe as a browser for Bash for Windows";
-            echo "export BROWSER=\$BROWSER:$Exe";
-          } >>"$BashFile"
+          echo "
+          # Adding $Exe as a browser for Bash for Windows
+          if [[ \$(uname -r) == *Microsoft ]]; then
+            if [[ -z $BROWSER ]]; then
+              export BROWSER=$Exe
+            else
+              export BROWSER=$BROWSER:$Exe
+            fi
+          fi
+          " >>"$BashFile"
         fi
       fi
       ;;

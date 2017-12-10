@@ -1,16 +1,16 @@
 # wsl-open (:open_file_folder: :arrow_right: :computer:)
 
-[![npm
-version](https://img.shields.io/npm/v/wsl-open.svg)](http://npmjs.com/package/wsl-open)
 [![pipeline
 status](https://gitlab.com/4U6U57/wsl-open/badges/master/pipeline.svg)](https://gitlab.com/4U6U57/wsl-open/commits/master)
+[![npm
+version](https://img.shields.io/npm/v/wsl-open.svg)](http://npmjs.com/package/wsl-open)
 
 Utility for opening files within the [Windows Subsystem for Linux][wsl] command
 line in Windows GUI applications.
 
 ## Usage
 
-Just run **wsl-open** with the file that you want to open.
+Just run **wsl-open** with the file/directory/URL that you want to open.
 
 ```bash
 wsl-open { FILE | DIRECTORY | URL }
@@ -20,8 +20,8 @@ wsl-open { FILE | DIRECTORY | URL }
 - `FILE` paths can be relative or absolute
 - `DIRECTORY` paths are the same, but can only refer to directories accessible
   in Windows (under `/mnt/*` in WSL)
-- `URL`s must include the `http(s)://` or begin with `www`, same as how
-  `xdg-open` handles URLs
+- `URL`s must include the protocol (`http://`, `https://`, `ftp://`, etc) or
+  begin with `www`, which is consistent with how `xdg-open` handles URLs
 
 ### Examples
 
@@ -32,6 +32,9 @@ wsl-open image.png
 # Relative and absolute paths work
 wsl-open ../Downloads/resume.pdf
 wsl-open /home/other/README.txt
+
+# Directories under Windows
+wsl-open /mnt/c/Users/4u6u5/Music
 
 # Opens your Windows default browser
 wsl-open http://google.com
@@ -48,14 +51,20 @@ This keeps your scripts platform agnostic.
 # Set association for file type
 wsl-open -a image.png
 
-# Now, you can open up any image with xdg-open, and wsl-open will handle it
-xdg-open another-image.png
+# Now, you can open up any PNG with xdg-open, and wsl-open will handle it
+xdg-open another_image.png
 
 # Unassociate wsl-open with a file type
-wsl-open -u image.png
+wsl-open -d image.png
 
 # Associate wsl-open with links (set wsl-open as your shell's BROWSER)
 wsl-open -w
+
+# Now URL's work as well!
+xdg-open https://gitlab.com/4U6U57/wsl-open
+
+# And this allows other programs that depend on xdg-open to use it as well!
+npm repo wsl-open # Same as the previous command
 ```
 
 > **Protip**: I like to furthur generalize my scripts by setting `alias
@@ -81,25 +90,21 @@ sudo apt-get install -yqq npm
 sudo npm install -g wsl-open
 ```
 
-### Bash script
+### Standalone
 
 **wsl-open** is actually just a single, self contained bash script, so the bare
-minimum installation is simply downloading the script, either by cloning the
-repo or downloading it from this site, and then adding it to your path. Here is
-an example:
+minimum installation is simply downloading the script (either by cloning the
+repo or via `curl`) and then adding it to your path. Here is an example:
 
 ```bash
 # Make a bin folder in your home directory
 mkdir ~/bin
 
 # Add the bin folder to your PATH in your bashrc
-echo "[[ -e ~/bin ]] && PATH=$PATH:~/bin" » .bashrc
+echo '[[ -e ~/bin ]] && PATH=$PATH:~/bin' » .bashrc
 
 # Download the script to a file named 'wsl-open'
 curl -o ~/bin/wsl-open https://raw.githubusercontent.com/4U6U57/wsl-open/master/wsl-open.sh
-
-# Mark it as executable
-chmod +x ~/bin/wsl-open
 ```
 
 [wsl]: https://msdn.microsoft.com/en-us/commandline/wsl/about
