@@ -6,17 +6,6 @@
   "directories": {
     "test": "test"
   },
-  "scripts": {
-    "test": "for test in lint unit; do npm run $test; done",
-    "version": "npm run man",
-    "lint": "for lint in lint:md lint:sh; do npm run $lint; done",
-    "lint:sh": "shellcheck *.sh",
-    "lint:md": "markdownlint *.md",
-    "man": "for man in man:gen man:install; do npm run $man; done",
-    "man:gen": "marked-man --version \"wsl-open $npm_package_version\" --manual \"wsl-open manual\" --section 1 MANUAL.md > wsl-open.1",
-    "man:install": "File=wsl-open.1; sed 's/\\\"/\\\\\\\"/g' $File >$File.swp; Begin=\".\\\" IMPORT $File\"; End=\".\\\" END IMPORT $File\"; sed -i \"/$Begin/,/$End/{ /$Begin/{p; r $File.swp\n}; /$End/p; d }\" wsl-open.sh; rm -f $File.swp",
-    "unit": "bats *.bats"
-  },
   "repository": {
     "type": "git",
     "url": "https://gitlab.com/4U6U57/wsl-open.git"
@@ -32,17 +21,33 @@
     "url": "https://gitlab.com/4U6U57/wsl-open/issues"
   },
   "homepage": "https://gitlab.com/4U6U57/wsl-open#README",
+  "contributors": [],
+  "scripts": {
+    "test": "for test in lint unit; do npm run $test; done",
+    "version": "npm run man",
+    "lint": "for lint in md sh pkg; do npm run lint:$lint; done",
+    "lint:sh": "shellcheck *.sh",
+    "lint:md": "markdownlint *.md",
+    "lint:pkg": "pjv --recommendations --warnings",
+    "man": "for man in gen install; do npm run man:$man; done",
+    "man:gen": "marked-man --version \"wsl-open $npm_package_version\" --manual \"wsl-open manual\" --section 1 MANUAL.md > wsl-open.1",
+    "man:install": "File=wsl-open.1; sed 's/\\\"/\\\\\\\"/g' $File >$File.swp; Begin=\".\\\" IMPORT $File\"; End=\".\\\" END IMPORT $File\"; sed -i \"/$Begin/,/$End/{ /$Begin/{p; r $File.swp\n}; /$End/p; d }\" wsl-open.sh; rm -f $File.swp",
+    "unit": "bats *.bats"
+  },
+  "dependencies": {},
   "devDependencies": {
     "bats": "^0.4.2",
     "bats-assert": "git+https://github.com/ztombol/bats-assert.git",
     "bats-support": "git+https://github.com/ztombol/bats-support.git",
     "markdownlint-cli": "^0.5.0",
     "marked-man": "^0.2.1",
+    "package-json-validator": "^0.6.3",
     "shellcheck": "0.0.8"
   },
+  "engines": {},
   "preferGlobal": true,
   "bin": {
     "wsl-open": "wsl-open.sh"
   },
-  "man": "wsl-open.1"
+  "man": "./wsl-open.1"
 }

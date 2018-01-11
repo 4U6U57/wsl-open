@@ -9,6 +9,7 @@ test:
     - npm install --unsafe-perm=true
     - npm run lint:sh
     - npm run lint:md
+    - npm run lint:pkg
     - npm run unit
   artifacts:
     paths:
