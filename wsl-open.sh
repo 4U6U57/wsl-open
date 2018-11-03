@@ -83,29 +83,45 @@ xdg\-open(1), Project Page \fIhttps://gitlab\.com/4U6U57/wsl\-open\fR
 # Path conversion functions
 WinPathToLinux() {
   Path=$*
-  # Sanitize, remove \r and \n
-  Path=$(tr -d '\r\n' <<< "$Path")
-  # C:\\folder\path -> C:\folder\path (only if there is \\)
-  Path=${Path//\\\\/\\}
-  # C:\folder\path -> C:/folder/path
-  Path=${Path//\\/\/}
-  # C:/folder/path -> c/folder/path
-  # shellcheck disable=SC2018,SC2019
-  Path=$(tr 'A-Z' 'a-z' <<< "${Path:0:1}")${Path:2}
-  # c/folder/path -> /mnt/c/folder/path
-  Path=$WslDisks/$Path
+  # If wslpath exist (in Windows 10 version 1803 and higher).
+  # See blogpost https://blogs.msdn.microsoft.com/commandline/2018/03/07/windows10v1803/) for more informations.
+  if command -v wslpath>/dev/null ; then
+    # Run it
+    Path=$(wslpath -u "$Path")
+  else
+    # Manual conversion
+    # Sanitize, remove \r and \n
+    Path=$(tr -d '\r\n' <<< "$Path")
+    # C:\\folder\path -> C:\folder\path (only if there is \\)
+    Path=${Path//\\\\/\\}
+    # C:\folder\path -> C:/folder/path
+    Path=${Path//\\/\/}
+    # C:/folder/path -> c/folder/path
+    # shellcheck disable=SC2018,SC2019
+    Path=$(tr 'A-Z' 'a-z' <<< "${Path:0:1}")${Path:2}
+    # c/folder/path -> /mnt/c/folder/path
+    Path=$WslDisks/$Path
+  fi
   echo "$Path"
 }
 LinuxPathToWin() {
   Path=$*
-  # If path not under $Disks, can't convert
-  [[ $Path != $WslDisks/* ]] && Error "Error converting Linux path to Windows"
-  # /mnt/c/folder/path -> c/folder/path
-  Path=${Path:$((${#WslDisks} + 1))}
-  # c/folder/path -> C://folder/path
-  Path=$(tr '[:lower:]' '[:upper:]' <<< "${Path:0:1}"):/${Path:1}
-  # C://folder/path -> C:\\folder\path
-  Path=${Path//\//\\}
+  # if wslpath exist (in Windows 10 version 1803 and higher).
+  # See blogpost https://blogs.msdn.microsoft.com/commandline/2018/03/07/windows10v1803/) for more informations.
+  if command -v wslpath>/dev/null ; then
+    # Run it
+    Path=$(wslpath -w "$Path")
+  else
+    # Manual conversion
+    # If path not under $Disks, can't convert
+    [[ $Path != $WslDisks/* ]] && Error "Error converting Linux path to Windows"
+    # /mnt/c/folder/path -> c/folder/path
+    Path=${Path:$((${#WslDisks} + 1))}
+    # c/folder/path -> C://folder/path
+    Path=$(tr '[:lower:]' '[:upper:]' <<< "${Path:0:1}"):/${Path:1}
+    # C://folder/path -> C:\\folder\path
+    Path=${Path//\//\\}
+  fi
   echo "$Path"
 }
 
