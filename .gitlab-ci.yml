@@ -2,7 +2,7 @@ image: ubuntu:latest
 
 before_script:
   - apt-get update -yqq
-  - apt-get install -yqq npm nodejs-legacy git wget
+  - apt-get install -yqq npm nodejs git wget
 
 test:
   script:
