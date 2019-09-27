@@ -186,7 +186,7 @@ shift $(( OPTIND - 1 ))
 
 # Open file
 File=$1
-if [[ ! -z $File ]]; then
+if [[ -n $File ]]; then
   if [[ -e $File ]]; then
     # File or directory
     FilePath="$(readlink -f "$File")"
