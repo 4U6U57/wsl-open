@@ -34,7 +34,7 @@ Warning() {
 # Usage message, ran on help (-h)
 Usage="
 .\" IMPORT wsl-open.1
-.TH \"WSL\-OPEN\" \"1\" \"September 2019\" \"wsl-open 1.2.0\" \"wsl-open manual\"
+.TH \"WSL\-OPEN\" \"1\" \"September 2019\" \"wsl-open 1.2.1\" \"wsl-open manual\"
 .SH \"NAME\"
 \fBwsl-open\fR
 .SH SYNOPSIS
