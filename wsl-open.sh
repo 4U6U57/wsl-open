@@ -117,7 +117,7 @@ DryRunner() {
 # Check that we're on Windows Subsystem for Linux
 # shellcheck disable=SC2154
 if $EnableWslCheck; then
-  [[ $(uname -r) != *Microsoft ]] && Error "Could not detect WSL (Windows Subsystem for Linux)"
+  [[ ! $(uname -r) =~ (m|M)icrosoft ]] && Error "Could not detect WSL (Windows Subsystem for Linux)"
 fi
 
 # Check command line arguments
@@ -163,7 +163,7 @@ while getopts "ha:d:wx" Opt; do
         else
           echo "
           # Adding $Exe as a browser for Bash for Windows
-          if [[ \$(uname -r) == *Microsoft ]]; then
+          if [[ \$(uname -r) =~ (m|M)icrosoft ]]; then
             if [[ -z \$BROWSER ]]; then
               export BROWSER=$Exe
             else
