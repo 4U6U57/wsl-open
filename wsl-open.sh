@@ -164,10 +164,10 @@ while getopts "ha:d:wx" Opt; do
           echo "
           # Adding $Exe as a browser for Bash for Windows
           if [[ \$(uname -r) =~ (m|M)icrosoft ]]; then
-            if [[ -z $BROWSER ]]; then
+            if [[ -z \$BROWSER ]]; then
               export BROWSER=$Exe
             else
-              export BROWSER=$BROWSER:$Exe
+              export BROWSER=\$BROWSER:$Exe
             fi
           fi
           " >>"$BashFile"
