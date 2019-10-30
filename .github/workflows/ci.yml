@@ -11,7 +11,7 @@ jobs:
     - uses: actions/checkout@v1
       
     - name: Install system dependencies
-      run: apt install wget -y
+      run: sudo apt-get install wget -y
       
     - name: Use Node.js 12
       uses: actions/setup-node@v1
