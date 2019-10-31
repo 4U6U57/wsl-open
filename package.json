@@ -25,7 +25,6 @@
   "scripts": {
     "test": "for test in lint unit; do npm run $test; done",
     "version": "npm run man; git add .",
-    "postversion": "git push; git push --tags",
     "lint": "for lint in md sh pkg; do npm run lint:$lint; done",
     "lint:sh": "shellcheck *.sh",
     "lint:md": "markdownlint *.md",
