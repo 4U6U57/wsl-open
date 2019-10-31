@@ -26,7 +26,7 @@ jobs:
       - name: Automated Version Bump
         uses: phips28/gh-action-bump-version@v5.0.12
         env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
   publish-npm:
     needs: version
