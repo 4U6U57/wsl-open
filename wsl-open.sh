@@ -80,35 +80,6 @@ xdg\-open(1), Project Page \fIhttps://gitlab\.com/4U6U57/wsl\-open\fR
 .\" END IMPORT wsl-open.1
 "
 
-# Path conversion functions
-WinPathToLinux() {
-  Path=$*
-  # Sanitize, remove \r and \n
-  Path=$(tr -d '\r\n' <<< "$Path")
-  # C:\\folder\path -> C:\folder\path (only if there is \\)
-  Path=${Path//\\\\/\\}
-  # C:\folder\path -> C:/folder/path
-  Path=${Path//\\/\/}
-  # C:/folder/path -> c/folder/path
-  # shellcheck disable=SC2018,SC2019
-  Path=$(tr 'A-Z' 'a-z' <<< "${Path:0:1}")${Path:2}
-  # c/folder/path -> /mnt/c/folder/path
-  Path=$WslDisks/$Path
-  echo "$Path"
-}
-LinuxPathToWin() {
-  Path=$*
-  # If path not under $Disks, can't convert
-  [[ $Path != $WslDisks/* ]] && Error "Error converting Linux path to Windows"
-  # /mnt/c/folder/path -> c/folder/path
-  Path=${Path:$((${#WslDisks} + 1))}
-  # c/folder/path -> C://folder/path
-  Path=$(tr '[:lower:]' '[:upper:]' <<< "${Path:0:1}"):/${Path:1}
-  # C://folder/path -> C:\\folder\path
-  Path=${Path//\//\\}
-  echo "$Path"
-}
-
 # Printer for dry run function
 DryRunner() {
   echo "$Exe: RUN: $*"
@@ -193,11 +164,7 @@ if [[ -n $File ]]; then
 
     # shellcheck disable=SC2053
     # Use UNC path to access linux files
-    if [[ $FilePath != $WslDisks/* ]]; then
-      FileWin="\\\\wsl\$\\$WSL_DISTRO_NAME"${FilePath//\//\\}
-    else
-      FileWin=$(LinuxPathToWin "$FilePath")
-    fi
+      FileWin=`wslpath -w $FilePath`
 
   elif [[ $File == *://* ]]; then
     # If "file" input is a link, just pass it directly
