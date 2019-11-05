@@ -192,29 +192,13 @@ if [[ -n $File ]]; then
     FilePath="$(readlink -f "$File")"
 
     # shellcheck disable=SC2053
+    # Use UNC path to access linux files
     if [[ $FilePath != $WslDisks/* ]]; then
-      # File or directory is not on a Windows accessible disk
-      # If it is a directory, then we can't do anything, quit
-      [[ ! -f $FilePath ]] && Error "Directory not in Windows partition: $FilePath"
-      # If it's a file, we copy it to the user's temp folder before opening
-      Warning "File not in Windows partition: $FilePath"
-      # If we do not have a temp folder assigned, find one using Windows
-      if [[ -z $WslTempDir ]]; then
-        TempFolder=$(cmd.exe /C echo %TEMP%)
-        WslTempDir=$(WinPathToLinux "$TempFolder")
-      fi
-      ExeTempDir="$WslTempDir/$Exe"
-      [[ ! -e $ExeTempDir ]] && Warning "Creating temp dir for $Exe to use: $ExeTempDir" && mkdir --parents "$ExeTempDir"
-      FilePath="$ExeTempDir/$(basename "$FilePath")"
-      if ! $DryRun; then
-        echo -n "Copying "
-        cp -v "$File" "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
-      else
-        DryRunner "cp \"$File\" \"$FilePath\""
-      fi
+      FileWin="\\\\wsl\$\\$WSL_DISTRO_NAME"${FilePath//\//\\}
+    else
+      FileWin=$(LinuxPathToWin "$FilePath")
     fi
 
-    FileWin=$(LinuxPathToWin "$FilePath")
   elif [[ $File == *://* ]]; then
     # If "file" input is a link, just pass it directly
     FileWin=$File
