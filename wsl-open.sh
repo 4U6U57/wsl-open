@@ -160,12 +160,12 @@ File=$1
 if [[ -n $File ]]; then
   if [[ -e $File ]]; then
     # File or directory
-    FilePath="$(readlink -f "$File")"
+    FilePath=$(readlink -f "$File")
+	#FilePath=${FilePath//\ /\\\ }
+	#echo $FilePath
 
-    # shellcheck disable=SC2053
-    # Use UNC path to access linux files
-      FileWin=`wslpath -w $FilePath`
-
+	#echo wslpath -w "$FilePath"
+      FileWin=$(wslpath -w "$FilePath")
   elif [[ $File == *://* ]]; then
     # If "file" input is a link, just pass it directly
     FileWin=$File
