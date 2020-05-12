@@ -162,7 +162,6 @@ if [[ -n $File ]]; then
     # File or directory
     FilePath=$(readlink -f "$File")
 
-	#echo wslpath -w "$FilePath"
       FileWin=$(wslpath -w "$FilePath")
   elif [[ $File == *://* ]]; then
     # If "file" input is a link, just pass it directly
