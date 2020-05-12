@@ -161,8 +161,6 @@ if [[ -n $File ]]; then
   if [[ -e $File ]]; then
     # File or directory
     FilePath=$(readlink -f "$File")
-	#FilePath=${FilePath//\ /\\\ }
-	#echo $FilePath
 
 	#echo wslpath -w "$FilePath"
       FileWin=$(wslpath -w "$FilePath")
