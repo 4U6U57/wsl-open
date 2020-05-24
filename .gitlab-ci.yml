@@ -5,11 +5,13 @@ include:
   - template: Dependency-Scanning.gitlab-ci.yml
   - template: License-Scanning.gitlab-ci.yml
 
-before_script:
-  - apt-get update -yqq
-  - apt-get install -yqq npm nodejs git wget
-
 test:
+  before_script:
+    - apt-get update -yqq
+    - apt-get install -yqq build-essential curl default-jdk
+    - curl -sL https://deb.nodesource.com/setup_10.x | bash -
+    - apt-get install -yqq nodejs
+    - npm --version
   script:
     - npm install --unsafe-perm=true
     - npm run lint:pkg
