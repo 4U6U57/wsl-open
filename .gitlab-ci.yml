@@ -1,4 +1,4 @@
-image: ubuntu:latest
+image: ubuntu:bionic
 
 include:
   - template: Code-Quality.gitlab-ci.yml

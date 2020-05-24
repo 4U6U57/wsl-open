@@ -32,11 +32,12 @@
     "man:install": "File=wsl-open.1; sed 's/\\\"/\\\\\\\"/g' $File >$File.swp; Begin=\".\\\" IMPORT $File\"; End=\".\\\" END IMPORT $File\"; sed -i \"/$Begin/,/$End/{ /$Begin/{p; r $File.swp\n}; /$End/p; d }\" wsl-open.sh; rm -f $File.swp",
     "unit": "bats *.bats"
   },
-  "dependencies": {},
+  "dependencies": {
+    "bats": "^1.1.0",
+    "bats-assert": "^2.0.0",
+    "bats-support": "^0.3.0"
+  },
   "devDependencies": {
-    "bats": "^0.4.2",
-    "bats-assert": "git+https://github.com/ztombol/bats-assert.git",
-    "bats-support": "git+https://github.com/ztombol/bats-support.git",
     "marked-man": "^0.2.1",
     "package-json-validator": "^0.6.3"
   },
