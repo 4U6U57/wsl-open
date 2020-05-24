@@ -1,5 +1,10 @@
 image: ubuntu:latest
 
+include:
+  - template: Code-Quality.gitlab-ci.yml
+  - template: Dependency-Scanning.gitlab-ci.yml
+  - template: License-Scanning.gitlab-ci.yml
+
 before_script:
   - apt-get update -yqq
   - apt-get install -yqq npm nodejs git wget
@@ -7,8 +12,6 @@ before_script:
 test:
   script:
     - npm install --unsafe-perm=true
-    - npm run lint:sh
-    - npm run lint:md
     - npm run lint:pkg
     - npm run unit
   artifacts:
