@@ -20,3 +20,13 @@ test:
     paths:
       - npm-debug.log
     expire_in: 1 month
+
+backmerge:
+  stage: deploy
+  only:
+    refs:
+      - master
+  script:
+    - git checkout develop && git pull origin develop
+    - git merge $CI_COMMIT_SHA -m "Automated backmerge $CI_MERGE_REQUEST_TARGET_BRANCH_NAME -> develop"
+    - git push origin develop
