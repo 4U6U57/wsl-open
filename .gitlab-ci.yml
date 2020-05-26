@@ -23,6 +23,20 @@ image: ubuntu:bionic
     ~/.ssh/config
   - chmod 700 ~/.ssh
 
+.script_checkout_branch: &script_checkout_branch
+  - git checkout ${CI_COMMIT_BRANCH}
+  - git reset --hard ${CI_COMMIT_SHA}
+
+.script_merge_master: &script_merge_master
+  - git merge origin/master
+  - git push origin HEAD:master
+  - git push --tags
+
+.script_npm_publish: &script_npm_publish
+  - npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
+  - npm publish
+
+
 stages:
   - test
   - promotion
@@ -47,8 +61,8 @@ test:
       - npm-debug.log
     expire_in: 1 month
 
-minor:
-  stage: version
+promote_patch:
+  stage: promotion
   when: manual
   only:
     refs:
@@ -60,14 +74,44 @@ minor:
     - *before_npm
     - *before_git
   script:
-    - git checkout ${CI_COMMIT_BRANCH}
-    - git reset --hard ${CI_COMMIT_SHA}
-    - npm version minor -m "Minor version %s"
-    - git merge origin/master
-    - git push origin HEAD:master
-    - git push --tags
-    - npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
-    - npm publish
+    - *script_checkout_branch
+    - *script_merge_master
+
+promote_minor:
+  stage: promotion
+  when: manual
+  only:
+    refs:
+      - develop
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ "[ci]"
+  before_script:
+    - *before_npm
+    - *before_git
+  script:
+    - *script_checkout_branch
+    - npm version minor --unsafe-perm=true -m "Minor version %s"
+    - *script_merge_master
+    - *script_npm_publish
+
+promote_major:
+  stage: promotion
+  when: manual
+  only:
+    refs:
+      - develop
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ "[ci]"
+  before_script:
+    - *before_npm
+    - *before_git
+  script:
+    - *script_checkout_branch
+    - npm version major --unsafe-perm=true -m "Major version %s"
+    - *script_merge_master
+    - *script_npm_publish
 
 patch:
   stage: version
@@ -81,11 +125,10 @@ patch:
     - *before_npm
     - *before_git
   script:
-    - npm version patch -m "[ci] Patch version %s"
+    - npm version patch --unsafe-perm=true -m "[ci] Patch version %s"
     - git push origin HEAD:${CI_COMMIT_BRANCH}
     - git push --tags
-    - npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
-    - npm publish
+    - *script_npm_publish
 
 backmerge:
   stage: backmerge
@@ -95,6 +138,7 @@ backmerge:
   before_script:
     - *before_git
   script:
-    - git checkout develop && git pull origin develop
-    - git merge ${CI_COMMIT_BRANCH} -m "[ci] Backmerge ${CI_COMMIT_BRANCH} -> develop"
+    - git checkout develop
+    - git pull origin develop
+    - git merge origin/${CI_COMMIT_BRANCH} -m "[ci] Backmerge ${CI_COMMIT_BRANCH} -> develop"
     - git push origin develop

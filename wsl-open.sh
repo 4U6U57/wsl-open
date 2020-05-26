@@ -5,7 +5,7 @@
 # @brief Opens files on Windows Subsystem for Linux with default Windows applications
 # @author August Valera
 #
-# @version 1.3.1
+# @version 1.4.3
 
 # Global
 # shellcheck disable=SC1117
@@ -32,7 +32,7 @@ Warning() {
 # Usage message, ran on help (-h)
 Usage="
 .\" IMPORT wsl-open.1
-.TH \"WSL\-OPEN\" \"1\" \"September 2019\" \"wsl-open 1.3.0\" \"wsl-open manual\"
+.TH \"WSL\-OPEN\" \"1\" \"May 2020\" \"wsl-open 1.4.2\" \"wsl-open manual\"
 .SH \"NAME\"
 \fBwsl-open\fR
 .SH SYNOPSIS
