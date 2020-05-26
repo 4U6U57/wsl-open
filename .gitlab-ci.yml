@@ -7,6 +7,11 @@ image: ubuntu:bionic
   - apt-get install -yqq nodejs
   - npm --version
 
+.before_git: &before_git
+  - apt-get update -yqq
+  - apt-get install -yqq git
+  - git --version
+
 stages:
   - test
   - promotion
@@ -38,6 +43,7 @@ minor:
       - develop
   before_script:
     - *before_npm
+    - *before_git
   script:
     - npm version patch -m "Minor version %s"
     - git merge origin/master
@@ -52,6 +58,7 @@ patch:
       - master
   before_script:
     - *before_npm
+    - *before_git
   script:
     - npm version patch -m "Automated patch version %s [ci-skip]"
     - git push origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
@@ -63,6 +70,8 @@ backmerge:
   only:
     refs:
       - master
+  before_script:
+    - *before_git
   script:
     - git checkout develop && git pull origin develop
     - git merge $CI_COMMIT_SHA -m "Automated backmerge $CI_MERGE_REQUEST_TARGET_BRANCH_NAME -> develop"
