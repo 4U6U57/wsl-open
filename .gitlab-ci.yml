@@ -53,6 +53,9 @@ minor:
   only:
     refs:
       - develop
+  except:
+    variables:
+      - ${CI_COMMIT_MESSAGE} =~ "[ci]"
   before_script:
     - *before_npm
     - *before_git
@@ -71,11 +74,14 @@ patch:
   only:
     refs:
       - master
+  except:
+    variables:
+      - ${CI_COMMIT_MESSAGE} =~ "[ci]"
   before_script:
     - *before_npm
     - *before_git
   script:
-    - npm version patch -m "Automated patch version %s [ci-skip]"
+    - npm version patch -m "[ci] Patch version %s"
     - git push origin HEAD:${CI_COMMIT_BRANCH}
     - git push --tags
     - npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
@@ -90,5 +96,5 @@ backmerge:
     - *before_git
   script:
     - git checkout develop && git pull origin develop
-    - git merge $CI_COMMIT_SHA -m "Automated backmerge $CI_COMMIT_BRANCH -> develop"
+    - git merge ${CI_COMMIT_BRANCH} -m "[ci] Backmerge ${CI_COMMIT_BRANCH} -> develop"
     - git push origin develop
