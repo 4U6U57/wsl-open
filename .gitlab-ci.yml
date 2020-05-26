@@ -1,17 +1,69 @@
-image: ubuntu:latest
+image: ubuntu:bionic
 
-before_script:
+.before_npm: &before_npm
   - apt-get update -yqq
-  - apt-get install -yqq npm nodejs git wget
+  - apt-get install -yqq build-essential curl default-jdk
+  - curl -sL https://deb.nodesource.com/setup_10.x | bash -
+  - apt-get install -yqq nodejs
+  - npm --version
+
+stages:
+  - test
+  - promotion
+  - version
+  - backmerge
+
+include:
+  - template: Code-Quality.gitlab-ci.yml
+  - template: Dependency-Scanning.gitlab-ci.yml
+  - template: License-Scanning.gitlab-ci.yml
 
 test:
+  stage: test
+  before_script:
+    - *before_npm
   script:
     - npm install --unsafe-perm=true
-    - npm run lint:sh
-    - npm run lint:md
     - npm run lint:pkg
     - npm run unit
   artifacts:
     paths:
       - npm-debug.log
     expire_in: 1 month
+
+minor:
+  when: manual
+  only:
+    refs:
+      - develop
+  before_script:
+    - *before_npm
+  script:
+    - npm version patch -m "Minor version %s"
+    - git merge origin/master
+    - git push origin master
+    - npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
+    - npm publish
+
+patch:
+  stage: version
+  only:
+    refs:
+      - master
+  before_script:
+    - *before_npm
+  script:
+    - npm version patch -m "Automated patch version %s [ci-skip]"
+    - git push origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    - npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
+    - npm publish
+
+backmerge:
+  stage: backmerge
+  only:
+    refs:
+      - master
+  script:
+    - git checkout develop && git pull origin develop
+    - git merge $CI_COMMIT_SHA -m "Automated backmerge $CI_MERGE_REQUEST_TARGET_BRANCH_NAME -> develop"
+    - git push origin develop

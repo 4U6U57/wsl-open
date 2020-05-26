@@ -25,24 +25,21 @@
   "scripts": {
     "test": "for test in lint unit; do npm run $test; done",
     "version": "npm run man; git add .",
-    "lint": "for lint in md sh pkg; do npm run lint:$lint; done",
-    "lint:sh": "shellcheck *.sh",
-    "lint:md": "markdownlint *.md",
+    "lint": "for lint in pkg; do npm run lint:$lint; done",
     "lint:pkg": "pjv --recommendations --warnings",
     "man": "for man in gen install; do npm run man:$man; done",
     "man:gen": "marked-man --version \"wsl-open $npm_package_version\" --manual \"wsl-open manual\" --section 1 MANUAL.md > wsl-open.1",
     "man:install": "File=wsl-open.1; sed 's/\\\"/\\\\\\\"/g' $File >$File.swp; Begin=\".\\\" IMPORT $File\"; End=\".\\\" END IMPORT $File\"; sed -i \"/$Begin/,/$End/{ /$Begin/{p; r $File.swp\n}; /$End/p; d }\" wsl-open.sh; rm -f $File.swp",
     "unit": "bats *.bats"
   },
-  "dependencies": {},
+  "dependencies": {
+    "bats": "^1.1.0",
+    "bats-assert": "^2.0.0",
+    "bats-support": "^0.3.0"
+  },
   "devDependencies": {
-    "bats": "^0.4.2",
-    "bats-assert": "git+https://github.com/ztombol/bats-assert.git",
-    "bats-support": "git+https://github.com/ztombol/bats-support.git",
-    "markdownlint-cli": "^0.18.0",
     "marked-man": "^0.2.1",
-    "package-json-validator": "^0.6.3",
-    "shellcheck": "0.0.8"
+    "package-json-validator": "^0.6.3"
   },
   "engines": {},
   "preferGlobal": true,
