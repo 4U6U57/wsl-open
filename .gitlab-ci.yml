@@ -9,10 +9,15 @@ image: ubuntu:bionic
 
 .before_git: &before_git
   - apt-get update -yqq
-  - apt-get install -yqq git
+  - apt-get install -yqq git openssh-client
   - git --version
   - git config --global user.email "${GITLAB_USER_EMAIL}"
   - git config --global user.name "${GITLAB_USER_NAME}"
+  - eval $(ssh-agent -s)
+  - chmod 700 "${CI_DEPLOY_KEY}"
+  - ssh-add "${CI_DEPLOY_KEY}"
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
 
 stages:
   - test
