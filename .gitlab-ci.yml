@@ -13,10 +13,14 @@ image: ubuntu:bionic
   - git --version
   - git config --global user.email "${GITLAB_USER_EMAIL}"
   - git config --global user.name "${GITLAB_USER_NAME}"
+  - git remote set-url origin --push "git@${CI_SERVER_HOST}:${CI_PROJECT_PATH}"
+  - git remote -v
   - eval $(ssh-agent -s)
   - chmod 700 "${CI_DEPLOY_KEY}"
   - ssh-add "${CI_DEPLOY_KEY}"
   - mkdir -p ~/.ssh
+  - echo -e "Host ${CI_SERVER_HOST}\n\tStrictHostKeyChecking no" >>
+    ~/.ssh/config
   - chmod 700 ~/.ssh
 
 stages:
