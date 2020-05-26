@@ -39,6 +39,7 @@ test:
     expire_in: 1 month
 
 minor:
+  stage: version
   when: manual
   only:
     refs:
@@ -47,9 +48,12 @@ minor:
     - *before_npm
     - *before_git
   script:
-    - npm version patch -m "Minor version %s"
+    - git checkout ${CI_COMMIT_BRANCH}
+    - git reset --hard ${CI_COMMIT_SHA}
+    - npm version minor -m "Minor version %s"
     - git merge origin/master
-    - git push origin master && git push --tags
+    - git push origin HEAD:master
+    - git push --tags
     - npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
     - npm publish
 
