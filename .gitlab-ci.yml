@@ -55,7 +55,7 @@ minor:
       - develop
   except:
     variables:
-      - ${CI_COMMIT_MESSAGE} =~ "[ci]"
+      - $CI_COMMIT_MESSAGE =~ "[ci]"
   before_script:
     - *before_npm
     - *before_git
@@ -76,7 +76,7 @@ patch:
       - master
   except:
     variables:
-      - ${CI_COMMIT_MESSAGE} =~ "[ci]"
+      - $CI_COMMIT_MESSAGE =~ "[ci]"
   before_script:
     - *before_npm
     - *before_git
