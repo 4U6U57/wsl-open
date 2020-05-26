@@ -1,13 +1,11 @@
 #!/bin/bash
 
 ##
-# @file open-window.sh
+# @file wsl-open.sh
 # @brief Opens files on Windows Subsystem for Linux with default Windows applications
 # @author August Valera
 #
-# @version
-# @date 2017-11-23
-#
+# @version 1.3.1
 
 # Global
 # shellcheck disable=SC1117
