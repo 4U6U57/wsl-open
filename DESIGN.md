@@ -21,22 +21,24 @@ prompting the user to select a program if not set. This has several limitations:
   directories and the `C:\\` (or whatever disk label) prefix. For reference, on
   Bash for Windows, the equivalent file path would be
   `/mnt/c/Users/TestUser/Documents/file.pdf`
-- The file must be in a Windows accessible disk, meaning any folder under
-  `/mnt/*` on WSL. The WSL filesystem is not accessible from the Windows side,
-  so files in your home folder, for instance, will not be accessible.
+- The file must be accessible on Windows. This means either:
+  - The file is on the Windows filesystem, which is usually any folder under
+    `/mnt/*` on WSL.
+  - The Linux filesystem is accessible on Windows. This is only true after build
+    1803, which introduced the `wslpath` utility
 
 **wsl-open** makes your life easier, by allowing you to specify a Linux style
 relative or absolute path, and resolving it to a Windows path. In addition, any
-files that are on the WSL filesystem will be copied into a temporary directory
-on the Windows disk before being opened.
+files that are inaccessible to the Windows filesystem will be copied into a
+temporary directory on the Windows filesystem before being opened.
 
 ### Copying from WSL
 
-If the requested file is not on a Windows accessible disk, it needs to be
-copied over before it can be opened by `powershell`/`cmd`. We use a temporary
-directory, specifically `%TEMP%\wsl-open%` (which resolves to
-`%USERPROFILE%\AppData\Temp\wsl-open`), to hold these files. Note that this
-means that there are a couple of caveats in doing so:
+If the requested file is not on the Windows filesystem and we are on a build
+before 1803, we need to copy it over to a Windows accessible folder before we
+can open it with `powershell`/`cmd`. We use a temporary directory, specifically
+`%TEMP%\wsl-open%` (which resolves to `%USERPROFILE%\AppData\Temp\wsl-open`), to
+hold these files. Note that there are a couple of caveats in doing so:
 
 - As the files being opened are only copies, any changes made with the Windows
   application will not be reflected in the original.
@@ -47,6 +49,10 @@ means that there are a couple of caveats in doing so:
   usage copying recursively, and because there is not much use opening a
   directory whose changes will not be reflected in the original.
 
+The `wslpath` utility has made a large part of this script, particularly the
+path translation logic and copying functionality, unnecessary. However, it is
+still kept around for backwards compatibility.
+
 ### Hooking into `xdg-open`
 
 The script creates/modifies two different configuration files, which allows it
@@ -56,6 +62,8 @@ to hook into the Linux `xdg-open` command. These are:
   Holds entries for different filetypes, as well as the program which should
   open them. Each entry is of the form `application/pdf; wsl-open '%s'`,
   `image/png; wsl-open '%s'`
+- `~/.bashrc`: exports the variable `$BROWSER`, which is called by `xdg-open` to
+  open URLs.
 
 ### Limitations/Unexpected Behavior
 
@@ -63,8 +71,9 @@ Here are some limitations of the script as it is written currently, which may
 result in unexpected behavior.
 
 - Some Windows applications will prevent other programs from writing to a file
-  while it is open, which will cause the script to fail. This affects reloading
-  a file (regardless of whether or not it has been edited), as well as
-  attempting to open a different file of with the same name.
+  while it is open, which will cause the script to fail if using the copying
+  functionality. This affects reloading a file (regardless of whether or not it
+  has been edited), as well as attempting to open a different file of with the
+  same name.
 
 [wsl]: https://msdn.microsoft.com/en-us/commandline/wsl/about

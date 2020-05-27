@@ -18,10 +18,12 @@ wsl-open { FILE | DIRECTORY | URL }
 ```
 
 - `FILE` paths can be relative or absolute
-- `DIRECTORY` paths are the same, but can only refer to directories accessible
-  in Windows (under `/mnt/*` in WSL)
+- `DIRECTORY` paths are the same, with a possible limitation*
 - `URL`s must include the protocol (`http://`, `https://`, `ftp://`, etc) or
   begin with `www`, which is consistent with how `xdg-open` handles URLs
+
+> *If using a WSL build without the `wslpath` (prior to Build 1803 - released
+> April 2018), only Windows directories can be opened
 
 ### Examples
 
