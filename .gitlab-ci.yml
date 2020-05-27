@@ -118,7 +118,6 @@ patch:
   only:
     refs:
       - master
-  except:
     variables:
       - $CI_COMMIT_MESSAGE !~ "/\[ci\]/"
   before_script:
