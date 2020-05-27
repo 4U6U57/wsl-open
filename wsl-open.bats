@@ -164,9 +164,6 @@ assert_wsl() {
 refute_wsl() {
   ! assert_wsl
 }
-assert_wslpath() {
-  which wslpath >/dev/null
-}
 
 # Output checkers
 assert_error() {
