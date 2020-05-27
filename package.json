@@ -25,7 +25,7 @@
   "scripts": {
     "test": "for test in lint unit; do npm run $test; done",
     "version": "npm run man; npm run version:install; git add .",
-    "version:install": "sed -i \"s/@version.*/@version $(npm view wsl-open version)/\" wsl-open.sh",
+    "version:install": "sed -i \"s/@version.*/@version $npm_package_version/\" wsl-open.sh",
     "lint": "for lint in pkg; do npm run lint:$lint; done",
     "lint:pkg": "npmPkgJsonLint .",
     "man": "for man in gen install; do npm run man:$man; done",
