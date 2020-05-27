@@ -27,20 +27,19 @@
     "version": "npm run man; npm run version:install; git add .",
     "version:install": "sed -i \"s/@version.*/@version $(npm view wsl-open version)/\" wsl-open.sh",
     "lint": "for lint in pkg; do npm run lint:$lint; done",
-    "lint:pkg": "pjv --recommendations --warnings",
+    "lint:pkg": "npmPkgJsonLint .",
     "man": "for man in gen install; do npm run man:$man; done",
     "man:gen": "marked-man --version \"wsl-open $npm_package_version\" --manual \"wsl-open manual\" --section 1 MANUAL.md > wsl-open.1",
     "man:install": "File=wsl-open.1; sed 's/\\\"/\\\\\\\"/g' $File >$File.swp; Begin=\".\\\" IMPORT $File\"; End=\".\\\" END IMPORT $File\"; sed -i \"/$Begin/,/$End/{ /$Begin/{p; r $File.swp\n}; /$End/p; d }\" wsl-open.sh; rm -f $File.swp",
     "unit": "bats *.bats"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "bats": "^1.1.0",
     "bats-assert": "^2.0.0",
-    "bats-support": "^0.3.0"
-  },
-  "devDependencies": {
-    "marked-man": "^0.7.0",
-    "package-json-validator": "^0.6.3"
+    "bats-support": "^0.3.0",
+    "npm-package-json-lint": "^5.1.0",
+    "npm-package-json-lint-config-default": "^3.0.0"
   },
   "engines": {},
   "preferGlobal": true,
