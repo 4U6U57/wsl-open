@@ -205,15 +205,15 @@ if [[ -n $File ]]; then
         Warning "File not in Windows partition: $FilePath"
         # If we do not have a temp folder assigned, find one using Windows
         if [[ -z $WslTempDir ]]; then
-          TempFolder=$(cmd.exe /C echo %TEMP% 2>/dev/null)
+          TempFolder=$(powershell.exe '$env:temp')
           WslTempDir=$(WinPathToLinux "$TempFolder")
         fi
         ExeTempDir="$WslTempDir/$Exe"
         [[ ! -e $ExeTempDir ]] && Warning "Creating temp dir for $Exe to use: $ExeTempDir" && mkdir --parents "$ExeTempDir"
         FilePath="$ExeTempDir/$(basename "$FilePath")"
         if ! $DryRun; then
-          echo -n "Copying "
-          cp -v "$File" "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
+          echo -n "Copying " >&2
+          cp -v "$File" "$FilePath" 1>&2 || Error "Could not copy file, check that it's not open on Windows"
         else
           DryRunner "cp \"$File\" \"$FilePath\""
         fi
