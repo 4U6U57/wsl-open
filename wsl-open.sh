@@ -133,10 +133,10 @@ while getopts "ha:d:wx" Opt; do
       TypeSafe="${Type//\//\\/}"
       echo "Associating type $Type with $Exe"
       if ! $DryRun; then
-        sed -i "/$TypeSafe/d" "$DefaultsFile"
+        [[ -e "$DefaultsFile" ]] && sed -i "/$TypeSafe/d" "$DefaultsFile"
         echo "$Type; $Exe '%s'" >>"$DefaultsFile"
       else
-        DryRunner "sed -i \"/$TypeSafe/d\" \"$DefaultsFile\""
+        DryRunner "[[ -e \"$DefaultsFile ]] && sed -i \"/$TypeSafe/d\" \"$DefaultsFile\""
         DryRunner "echo \"$Type; $Exe '%s'\" >>\"$DefaultsFile\""
       fi
       ;;
@@ -147,9 +147,9 @@ while getopts "ha:d:wx" Opt; do
       TypeSafe="${Type//\//\\/}"
       echo "Disassociating type $Type with $Exe"
       if ! $DryRun; then
-        sed -i "/$TypeSafe.*open-window/d" "$DefaultsFile"
+        [[ -e "$DefaultsFile" ]] && sed -i "/$TypeSafe.*$Exe/d" "$DefaultsFile"
       else
-        DryRunner "sed -i \"/$TypeSafe.*open-window/d\" \"$DefaultsFile\""
+        DryRunner "[[ -e \"$DefaultsFile\" ]] && sed -i \"/$TypeSafe.*$Exe/d\" \"$DefaultsFile\""
       fi
       ;;
     (w)
@@ -209,13 +209,16 @@ if [[ -n $File ]]; then
           WslTempDir=$(WinPathToLinux "$TempFolder")
         fi
         ExeTempDir="$WslTempDir/$Exe"
-        [[ ! -e $ExeTempDir ]] && Warning "Creating temp dir for $Exe to use: $ExeTempDir" && mkdir --parents "$ExeTempDir"
+        if [[ ! -e $ExeTempDir ]]; then
+          Warning "Creating temp dir for $Exe to use: $ExeTempDir"
+          mkdir --parents "$ExeTempDir"
+        fi
         FilePath="$ExeTempDir/$(basename "$FilePath")"
         if ! $DryRun; then
           echo -n "Copying " >&2
           cp -v "$File" "$FilePath" 1>&2 || Error "Could not copy file, check that it's not open on Windows"
         else
-          DryRunner "cp \"$File\" \"$FilePath\""
+          DryRunner "cp -v \"$File\" \"$FilePath\""
         fi
       fi
       FileWin=$(LinuxPathToWin "$FilePath")
