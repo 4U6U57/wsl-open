@@ -10,7 +10,7 @@ Source() {
   $BATS_TEST_DIRNAME/wsl-open.sh $@
 }
 TestSource() {
-  EnableWslCheck=$(assert_wsl)\
+  EnableWslCheck=$(assert_wsl || echo false)\
     EnableWslPath=${EnableWslPath:-false}\
     WslTempDir="$WslTempDir"\
     WslDisks="$TestDisks"\
