@@ -14,8 +14,10 @@
 # Variables
 Exe=$(basename "$0" .sh)
 WslOpenExe=${WslOpenExe:-"powershell.exe Start"}
+WslPathExe=${WslPathExe:-"wslpath -w"}
 WslDisks=${WslDisks:-/mnt}
 EnableWslCheck=${EnableWslCheck:-true}
+EnableWslPath=${EnableWslPath:-true}
 DryRun=${DryRun:-false}
 DefaultsFile=${DefaultsFile:-~/.mailcap}
 BashFile=${BashFile:-~/.bashrc}
@@ -88,10 +90,10 @@ while getopts "ha:d:wx" Opt; do
       TypeSafe="${Type//\//\\/}"
       echo "Associating type $Type with $Exe"
       if ! $DryRun; then
-        sed -i "/$TypeSafe/d" "$DefaultsFile"
+        [[ -e "$DefaultsFile" ]] && sed -i "/$TypeSafe/d" "$DefaultsFile"
         echo "$Type; $Exe '%s'" >>"$DefaultsFile"
       else
-        DryRunner "sed -i \"/$TypeSafe/d\" \"$DefaultsFile\""
+        DryRunner "[[ -e \"$DefaultsFile ]] && sed -i \"/$TypeSafe/d\" \"$DefaultsFile\""
         DryRunner "echo \"$Type; $Exe '%s'\" >>\"$DefaultsFile\""
       fi
       ;;
@@ -102,9 +104,9 @@ while getopts "ha:d:wx" Opt; do
       TypeSafe="${Type//\//\\/}"
       echo "Disassociating type $Type with $Exe"
       if ! $DryRun; then
-        sed -i "/$TypeSafe.*open-window/d" "$DefaultsFile"
+        [[ -e "$DefaultsFile" ]] && sed -i "/$TypeSafe.*$Exe/d" "$DefaultsFile"
       else
-        DryRunner "sed -i \"/$TypeSafe.*open-window/d\" \"$DefaultsFile\""
+        DryRunner "[[ -e \"$DefaultsFile\" ]] && sed -i \"/$TypeSafe.*$Exe/d\" \"$DefaultsFile\""
       fi
       ;;
     (w)
@@ -146,30 +148,39 @@ if [[ -n $File ]]; then
     # File or directory
     FilePath="$(readlink -f "$File")"
 
-    # shellcheck disable=SC2053
-    if [[ $FilePath != $WslDisks/* ]]; then
-      # File or directory is not on a Windows accessible disk
-      # If it is a directory, then we can't do anything, quit
-      [[ ! -f $FilePath ]] && Error "Directory not in Windows partition: $FilePath"
-      # If it's a file, we copy it to the user's temp folder before opening
-      Warning "File not in Windows partition: $FilePath"
-      # If we do not have a temp folder assigned, find one using Windows
-      if [[ -z $WslTempDir ]]; then
-        TempFolder=$(cmd.exe /C echo %TEMP%)
-        WslTempDir=$(WinPathToLinux "$TempFolder")
+    if $EnableWslPath && echo "$WslPathExe" | cut -d " " -f 1 | xargs which >/dev/null; then
+      # Native WSL path translation utility
+      FileWin=$($WslPathExe "$FilePath")
+    else
+      # Backwards compatability for WSL builds without wslpath
+      # shellcheck disable=SC2053
+      if [[ $FilePath != $WslDisks/* ]]; then
+        # File or directory is not on a Windows accessible disk
+        # If it is a directory, then we can't do anything, quit
+        [[ ! -f $FilePath ]] && Error "Directory not in Windows partition: $FilePath"
+        # If it's a file, we copy it to the user's temp folder before opening
+        Warning "File not in Windows partition: $FilePath"
+        # If we do not have a temp folder assigned, find one using Windows
+        if [[ -z $WslTempDir ]]; then
+          # shellcheck disable=SC2016
+          TempFolder=$(powershell.exe '$env:temp')
+          WslTempDir=$(WinPathToLinux "$TempFolder")
+        fi
+        ExeTempDir="$WslTempDir/$Exe"
+        if [[ ! -e $ExeTempDir ]]; then
+          Warning "Creating temp dir for $Exe to use: $ExeTempDir"
+          mkdir --parents "$ExeTempDir"
+        fi
+        FilePath="$ExeTempDir/$(basename "$FilePath")"
+        if ! $DryRun; then
+          echo -n "Copying " >&2
+          cp -v "$File" "$FilePath" 1>&2 || Error "Could not copy file, check that it's not open on Windows"
+        else
+          DryRunner "cp -v \"$File\" \"$FilePath\""
+        fi
       fi
-      ExeTempDir="$WslTempDir/$Exe"
-      [[ ! -e $ExeTempDir ]] && Warning "Creating temp dir for $Exe to use: $ExeTempDir" && mkdir --parents "$ExeTempDir"
-      FilePath="$ExeTempDir/$(basename "$FilePath")"
-      if ! $DryRun; then
-        echo -n "Copying "
-        cp -v "$File" "$FilePath" || Error "Could not copy file, check that it's not open on Windows"
-      else
-        DryRunner "cp \"$File\" \"$FilePath\""
-      fi
+      FileWin=$(LinuxPathToWin "$FilePath")
     fi
-
-    FileWin=$(LinuxPathToWin "$FilePath")
   elif [[ $File == *://* ]]; then
     # If "file" input is a link, just pass it directly
     FileWin=$File
