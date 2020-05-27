@@ -205,6 +205,7 @@ if [[ -n $File ]]; then
         Warning "File not in Windows partition: $FilePath"
         # If we do not have a temp folder assigned, find one using Windows
         if [[ -z $WslTempDir ]]; then
+          # shellcheck disable=SC2016
           TempFolder=$(powershell.exe '$env:temp')
           WslTempDir=$(WinPathToLinux "$TempFolder")
         fi
