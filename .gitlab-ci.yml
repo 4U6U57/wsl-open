@@ -137,5 +137,5 @@ backmerge:
   script:
     - git checkout develop
     - git pull origin develop
-    - git merge origin/${CI_COMMIT_BRANCH} -m "[ci] Backmerge ${CI_COMMIT_BRANCH} -> develop"
+    - git merge origin/${CI_COMMIT_BRANCH} --no-ff -m "[ci] Backmerge ${CI_COMMIT_BRANCH} -> develop"
     - git push origin develop
