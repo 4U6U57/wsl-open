@@ -5,17 +5,18 @@ load "node_modules/bats-assert/load"
 
 TestDir="$BATS_TEST_DIRNAME/test_folder"
 TestDisks="$BATS_TEST_DIRNAME/test_mnt"
+FakeWslPathPrefix="FakeWslPath:"
 Source() {
   $BATS_TEST_DIRNAME/wsl-open.sh $@
 }
 TestSource() {
-  if refute_wsl; then
-    export EnableWslCheck=false
-  fi
-  export WslTempDir=$WslTempDir
-  export WslDisks=$TestDisks
-  export WslOpenExe="echo Open:"
-  Source $*
+  EnableWslCheck=$(assert_wsl)\
+    EnableWslPath=${EnableWslPath:-false}\
+    WslTempDir="$WslTempDir"\
+    WslDisks="$TestDisks"\
+    WslPathExe="echo $FakeWslPathPrefix"\
+    WslOpenExe="echo Open:"\
+    Source $*
 }
 Exe=$(basename $Source .sh)
 ConfigFile=~/.$Exe
@@ -126,6 +127,29 @@ assert_output --partial "Directory not in Windows partition"
 refute_warning
 }
 
+@test "wslpath: file on Windows" {
+File="$UserDir/test.txt"
+touch $File
+EnableWslPath=true run TestSource $File
+assert_success
+refute_error
+refute_warning
+assert_openfile "$FakeWslPathPrefix $File"
+}
+
+@test "wslpath: file on Linux" {
+File="$TestDir/test.txt"
+touch $File
+export EnableWslPath=true
+run TestSource $File
+assert_success
+refute_warning
+refute_error
+assert_openfile "$FakeWslPathPrefix $File"
+refute [ -d $ExecTempDir ]
+refute [ -e $ExecTempDir/$(basename $File) ]
+}
+
 teardown() {
   cd ..
   rm -rf $TestDir $TestDisks
@@ -139,6 +163,9 @@ assert_wsl() {
 }
 refute_wsl() {
   ! assert_wsl
+}
+assert_wslpath() {
+  which wslpath >/dev/null
 }
 
 # Output checkers
@@ -188,8 +215,8 @@ create_valid_windisk() {
   export ExecTempFolder=$TempFolder\\wsl-open
   for Dir in $Disk $Disk/Windows $Disk/Windows/System32 $Disk/Users \
     $Disk/Users/$USER $UserDir/AppData $WslTempDir; do
-    safe_mkdir $Dir
-  done
+  safe_mkdir $Dir
+done
 }
 assert_valid_windisk() {
   Disk="$WinDisk"

@@ -14,8 +14,10 @@
 # Variables
 Exe=$(basename "$0" .sh)
 WslOpenExe=${WslOpenExe:-"powershell.exe Start"}
+WslPathExe=${WslPathExe:-"wslpath -w"}
 WslDisks=${WslDisks:-/mnt}
 EnableWslCheck=${EnableWslCheck:-true}
+EnableWslPath=${EnableWslPath:-true}
 DryRun=${DryRun:-false}
 DefaultsFile=${DefaultsFile:-~/.mailcap}
 BashFile=${BashFile:-~/.bashrc}
@@ -189,9 +191,9 @@ if [[ -n $File ]]; then
     # File or directory
     FilePath="$(readlink -f "$File")"
 
-    if which wslpath >/dev/null; then
+    if $EnableWslPath && echo "$WslPathExe" | cut -d " " -f 1 | xargs which >/dev/null; then
       # Native WSL path translation utility
-      FileWin=$(wslpath -w "$FilePath")
+      FileWin=$($WslPathExe "$FilePath")
     else
       # Backwards compatability for WSL builds without wslpath
       # shellcheck disable=SC2053
@@ -203,7 +205,7 @@ if [[ -n $File ]]; then
         Warning "File not in Windows partition: $FilePath"
         # If we do not have a temp folder assigned, find one using Windows
         if [[ -z $WslTempDir ]]; then
-          TempFolder=$(cmd.exe /C echo %TEMP%)
+          TempFolder=$(cmd.exe /C echo %TEMP% 2>/dev/null)
           WslTempDir=$(WinPathToLinux "$TempFolder")
         fi
         ExeTempDir="$WslTempDir/$Exe"
