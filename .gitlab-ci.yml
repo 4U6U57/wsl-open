@@ -6,7 +6,6 @@ image: ubuntu:bionic
   - curl -sL https://deb.nodesource.com/setup_10.x | bash -
   - apt-get install -yqq nodejs
   - npm --version
-  - npm install --unsafe-perm=true
 
 .before_git: &before_git
   - apt-get update -yqq
@@ -54,6 +53,7 @@ test:
   before_script:
     - *before_npm
   script:
+    - npm install --unsafe-perm=true
     - npm run lint:pkg
     - npm run unit
   artifacts:
