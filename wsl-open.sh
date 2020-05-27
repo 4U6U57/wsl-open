@@ -5,7 +5,7 @@
 # @brief Opens files on Windows Subsystem for Linux with default Windows applications
 # @author August Valera
 #
-# @version 1.4.8
+# @version 1.4.9
 
 # Global
 # shellcheck disable=SC1117
