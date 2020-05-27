@@ -120,6 +120,7 @@ patch:
       - master
     variables:
       - $CI_COMMIT_MESSAGE !~ /\[ci\]/
+  allow_failure: true
   before_script:
     - *before_npm
     - *before_git
@@ -134,6 +135,8 @@ backmerge:
   only:
     refs:
       - master
+  variables:
+    - $CI_COMMIT_MESSAGE =~ /\[ci\]/
   before_script:
     - *before_git
   script:
