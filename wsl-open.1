@@ -1,0 +1,43 @@
+.TH "WSL\-OPEN" "1" "May 2020" "wsl-open 1.5.1" "wsl-open manual"
+.SH "NAME"
+\fBwsl-open\fR
+.SH SYNOPSIS
+.P
+\fBwsl\-open [OPTIONS] { FILE | DIRECTORY | URL }\fP
+.SH DESCRIPTION
+.P
+wsl\-open is a shell script that uses Bash for Windows' \fBpowershell\.exe Start\fP
+command to open files with Windows applications\.
+.SH OPTIONS
+.P
+\fB\-h\fP
+displays this help page
+.P
+\fB\-a\fP
+associates this script with xdg\-open for files like this
+.P
+\fB\-d\fP
+disassociates this script with xdg\-open for files like this
+.P
+\fB\-w\fP
+associates this script with xdg\-open for links (\fBhttp://\fP)
+.P
+\fB\-x\fP
+dry run, does not open file, just echos command used to do it\.
+Useful for testing\.
+.SH EXAMPLES
+.P
+\fBwsl\-open manual\.docx\fP
+.P
+\fBwsl\-open /mnt/c/Users/Test\\ User/Downloads/profile\.png\fP
+.P
+\fBwsl\-open https://gitlab\.com/4U6U57/wsl\-open\fP
+.P
+\fBwsl\-open \-a README\.txt\fP
+.SH AUTHORS
+.P
+\fBAugust Valera\fR @4U6U57 on GitLab/GitHub
+.SH SEE ALSO
+.P
+xdg\-open(1), Project Page \fIhttps://gitlab\.com/4U6U57/wsl\-open\fR
+
