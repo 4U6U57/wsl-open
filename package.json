@@ -24,11 +24,11 @@
   "contributors": [],
   "scripts": {
     "test": "for test in lint unit; do npm run $test; done",
-    "version": "npm run man; npm run version:install; git add .",
-    "version:install": "sed -i \"s/@version.*/@version $(npm view wsl-open version)/\" wsl-open.sh",
+    "version": "npm run --unsafe-perm=true man; npm run version:install; git add .",
+    "version:install": "sed -i \"s/@version.*/@version $npm_package_version/\" wsl-open.sh",
     "lint": "for lint in pkg; do npm run lint:$lint; done",
     "lint:pkg": "npmPkgJsonLint .",
-    "man": "for man in gen install; do npm run man:$man; done",
+    "man": "for man in gen install; do npm run --unsafe-perm=true man:$man; done",
     "man:gen": "marked-man --version \"wsl-open $npm_package_version\" --manual \"wsl-open manual\" --section 1 MANUAL.md > wsl-open.1",
     "man:install": "File=wsl-open.1; sed 's/\\\"/\\\\\\\"/g' $File >$File.swp; Begin=\".\\\" IMPORT $File\"; End=\".\\\" END IMPORT $File\"; sed -i \"/$Begin/,/$End/{ /$Begin/{p; r $File.swp\n}; /$End/p; d }\" wsl-open.sh; rm -f $File.swp",
     "unit": "bats *.bats"
