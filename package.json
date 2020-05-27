@@ -39,7 +39,7 @@
     "bats-support": "^0.3.0"
   },
   "devDependencies": {
-    "marked-man": "^0.2.1",
+    "marked-man": "^0.7.0",
     "package-json-validator": "^0.6.3"
   },
   "engines": {},
