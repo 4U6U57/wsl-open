@@ -68,7 +68,7 @@ promote_patch:
     refs:
       - develop
     variables:
-      - $CI_COMMIT_MESSAGE !~ "[ci]"
+      - $CI_COMMIT_MESSAGE !~ /\[ci\]/
   environment: patch
   before_script:
     - *before_npm
@@ -84,7 +84,7 @@ promote_minor:
     refs:
       - develop
     variables:
-      - $CI_COMMIT_MESSAGE !~ "/\[ci\]/"
+      - $CI_COMMIT_MESSAGE !~ /\[ci\]/
   environment: minor
   before_script:
     - *before_npm
@@ -102,7 +102,7 @@ promote_major:
     refs:
       - develop
     variables:
-      - $CI_COMMIT_MESSAGE !~ "/\[ci\]/"
+      - $CI_COMMIT_MESSAGE !~ /\[ci\]/
   environment: major
   before_script:
     - *before_npm
@@ -119,7 +119,7 @@ patch:
     refs:
       - master
     variables:
-      - $CI_COMMIT_MESSAGE !~ "/\[ci\]/"
+      - $CI_COMMIT_MESSAGE !~ /\[ci\]/
   before_script:
     - *before_npm
     - *before_git
