@@ -14,7 +14,7 @@ TestSource() {
     EnableWslPath=${EnableWslPath:-false}\
     WslTempDir="$WslTempDir"\
     WslDisks="$TestDisks"\
-    WslPathExe="echo $FakeWslPathPrefix"\
+    WslPathExe=${WslPathExe:-"echo $FakeWslPathPrefix"}\
     WslOpenExe="echo Open:"\
     Source $*
 }
@@ -140,8 +140,7 @@ assert_openfile "$FakeWslPathPrefix $File"
 @test "wslpath: file on Linux" {
 File="$TestDir/test.txt"
 touch $File
-export EnableWslPath=true
-run TestSource $File
+EnableWslPath=true run TestSource $File
 assert_success
 refute_warning
 refute_error
@@ -149,6 +148,19 @@ assert_openfile "$FakeWslPathPrefix $File"
 refute [ -d $ExecTempDir ]
 refute [ -e $ExecTempDir/$(basename $File) ]
 }
+
+@test "wslpath: file on Linux fallback if unsupported" {
+File="$TestDir/test.txt"
+touch $File
+EnableWslPath=true WslPathExe="false" run TestSource $File
+assert_success
+assert_warning
+refute_error
+assert_openfile "$ExecTempFolder\\$(basename $File)"
+assert [ -d $ExecTempDir ]
+assert [ -e $ExecTempDir/$(basename $File) ]
+}
+
 
 teardown() {
   cd ..
