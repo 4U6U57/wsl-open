@@ -194,7 +194,9 @@ if [[ -n $File ]]; then
 
     if $EnableWslPath && echo "$WslPathExe" | cut -d " " -f 1 | xargs which >/dev/null; then
       # Native WSL path translation utility
-      FileWin=$($WslPathExe "$FilePath")
+      if ! FileWin=$($WslPathExe "$FilePath" 2>/dev/null); then
+        Warning "Native path translation ($WslPathExe) failed for path: $FilePath"
+      fi
     fi
 
     if [[ -z "$FileWin" ]]; then
