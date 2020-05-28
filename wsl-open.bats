@@ -14,7 +14,7 @@ TestSource() {
     EnableWslPath=${EnableWslPath:-false}\
     WslTempDir="$WslTempDir"\
     WslDisks="$TestDisks"\
-    WslPathExe="echo $FakeWslPathPrefix"\
+    WslPathExe=${WslPathExe:-"echo $FakeWslPathPrefix"}\
     WslOpenExe="echo Open:"\
     Source $*
 }
