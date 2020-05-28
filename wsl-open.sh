@@ -189,12 +189,15 @@ File=$1
 if [[ -n $File ]]; then
   if [[ -e $File ]]; then
     # File or directory
+    unset FileWin
     FilePath="$(readlink -f "$File")"
 
     if $EnableWslPath && echo "$WslPathExe" | cut -d " " -f 1 | xargs which >/dev/null; then
       # Native WSL path translation utility
       FileWin=$($WslPathExe "$FilePath")
-    else
+    fi
+
+    if [[ -z "$FileWin" ]]; then
       # Backwards compatability for WSL builds without wslpath
       # shellcheck disable=SC2053
       if [[ $FilePath != $WslDisks/* ]]; then
