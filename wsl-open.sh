@@ -13,7 +13,9 @@
 
 # Variables
 Exe=$(basename "$0" .sh)
-WslOpenExe=${WslOpenExe:-"powershell.exe Start"}
+PowershellExe=$(command -v powershell.exe)
+PowershellExe=${PowershellExe:-/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe}
+WslOpenExe=${WslOpenExe:-"${PowershellExe} Start"}
 WslPathExe=${WslPathExe:-"wslpath -w"}
 WslDisks=${WslDisks:-/mnt}
 EnableWslCheck=${EnableWslCheck:-true}
@@ -211,7 +213,7 @@ if [[ -n $File ]]; then
         # If we do not have a temp folder assigned, find one using Windows
         if [[ -z $WslTempDir ]]; then
           # shellcheck disable=SC2016
-          TempFolder=$(powershell.exe '$env:temp')
+          TempFolder=$(${PowershellExe} '$env:temp')
           WslTempDir=$(WinPathToLinux "$TempFolder")
         fi
         ExeTempDir="$WslTempDir/$Exe"
