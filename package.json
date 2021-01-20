@@ -1,6 +1,6 @@
 {
   "name": "wsl-open",
-  "version": "2.1.1",
+  "version": "2.2.1",
   "description": "Utility for opening files from the Windows Subsystem for Linux (WSL) in native Windows applications",
   "main": "wsl-open.sh",
   "directories": {
