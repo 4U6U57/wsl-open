@@ -187,7 +187,7 @@ done
 shift $(( OPTIND - 1 ))
 
 # Open file
-File=$1
+File=${1#file://}
 if [[ -n $File ]]; then
   if [[ -e $File ]]; then
     # File or directory
