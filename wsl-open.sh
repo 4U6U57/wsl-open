@@ -116,10 +116,12 @@ DryRunner() {
   echo "$Exe: RUN: $*"
 }
 
-# Check that we're on Windows Subsystem for Linux
+# Check that we're on Windows Subsystem for Linux, and make sure that we are not
+# in a container running on Docker's WSL 2 based engine.
 # shellcheck disable=SC2154
 if $EnableWslCheck; then
-  [[ ! $(uname -r) =~ (m|M)icrosoft ]] && Error "Could not detect WSL (Windows Subsystem for Linux)"
+  ([[ ! $(uname -r) =~ [mM]icrosoft ]] || grep -qE '(lxc|docker)' /proc/1/cgroup) \
+    && Error "Could not detect WSL (Windows Subsystem for Linux)"
 fi
 
 # Check command line arguments
