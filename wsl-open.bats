@@ -170,8 +170,18 @@ teardown() {
 ## Helper functions
 
 # Environment checkers
+assert_microsoft_in_uname() {
+  [[ $(uname -r) =~ [Mm]icrosoft ]]
+}
+assert_docker() {
+  grep -Eq '(lxc|docker)' /proc/1/cgroup
+}
+refute_docker() {
+  ! assert_docker
+}
 assert_wsl() {
-  [[ $(uname -r) == *Microsoft ]]
+  assert_microsoft_in_uname
+  refute_docker
 }
 refute_wsl() {
   ! assert_wsl
