@@ -22,7 +22,6 @@ EnableWslCheck=${EnableWslCheck:-true}
 EnableWslPath=${EnableWslPath:-true}
 DryRun=${DryRun:-false}
 DefaultsFile=${DefaultsFile:-~/.mailcap}
-BashFile=${BashFile:-~/.bashrc}
 
 # Error functions
 Error() {
@@ -32,6 +31,15 @@ Error() {
 Warning() {
   echo "$Exe: WARNING: $*" >&2
 }
+
+if [[ $SHELL == *"bash"* ]]; then
+  RcFile=${RcFile:-~/.bashrc}
+elif [[ $SHELL == *"zsh"* ]]; then
+  RcFile=${RcFile:-~/.zshenv}
+else
+  Warning "Unable to detect your login shell (only bash and zsh are supported), falling back to using ~/.bashrc. You can change it by setting the environment variable RcFile to the path of the source file your shell uses."
+  RcFile=${RcFile:~/.bashrc}
+fi
 
 # Usage message, ran on help (-h)
 Usage="
@@ -158,10 +166,10 @@ while getopts "ha:d:wx" Opt; do
       if echo "$BROWSER" | grep "$Exe" >/dev/null; then
         Warning "$Exe is already set as BROWSER"
       else
-        [[ ! -e $BashFile ]] && touch "$BashFile"
+        [[ ! -e $RcFile ]] && touch "$RcFile"
         echo "Adding $Exe to BROWSER environmental variables"
-        if grep "export.*BROWSER=.*$Exe" "$BashFile" >/dev/null; then
-          Error "$BashFile already adds $Exe to BROWSER, check it for problems or restart your Bash"
+        if grep "export.*BROWSER=.*$Exe" "$RcFile" >/dev/null; then
+          Error "$RcFile already adds $Exe to BROWSER, check it for problems or restart your Bash"
         else
           echo "
           # Adding $Exe as a browser for Bash for Windows
@@ -172,7 +180,7 @@ while getopts "ha:d:wx" Opt; do
               export BROWSER=\$BROWSER:$Exe
             fi
           fi
-          " >>"$BashFile"
+          " >>"$RcFile"
         fi
       fi
       ;;
